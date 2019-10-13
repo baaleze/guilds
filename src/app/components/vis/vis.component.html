@@ -1,0 +1,15 @@
+<div class="vis-container">
+<div class="decagon">
+    <span class="decagon-rect-1"></span>
+    <span class="decagon-rect-2"></span>
+    <span class="decagon-rect-3"></span>
+    <span class="decagon-rect-4"></span>
+    <span class="decagon-rect-5"></span>
+    <span class="pentagon-rect-1"></span>
+    <span class="pentagon-rect-2"></span>
+    <span class="pentagon-rect-3"></span>
+    <span class="pentagon-rect-4"></span>
+    <span class="pentagon-rect-5"></span>
+</div>
+<span *ngFor="let v of allVis" [className]="v + ' vis-count'">{{vis[v]}}</span>
+</div>
