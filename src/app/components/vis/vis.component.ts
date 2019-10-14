@@ -14,10 +14,12 @@ export class VisComponent implements OnInit {
   public allVis = Vis.allVis;
   public vis: Vis;
   public unlocks: Unlocks;
+  public productions;
 
   constructor(state: StateService) {
     this.vis = state.gameState.vis;
     this.unlocks = state.gameState.unlocks;
+    this.productions = state.gameState.vis.productions;
   }
 
   ngOnInit() {

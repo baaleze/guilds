@@ -1,5 +1,13 @@
 /* You can add global styles to this file, and also import other style files */
+@import '../node_modules/flexboxgrid-sass/flexboxgrid.scss';
+
+@font-face {
+    font-family: magic;
+    src: url(assets/RINGM___.TTF) format('truetype');
+}
+
 body {
+    font-family: magic;
     background-color: #0e0e0e;
     color: white;
 }

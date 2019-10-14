@@ -16,7 +16,14 @@ export class GameState {
         this.vis = new Vis();
         this.unlocks = new Unlocks();
         this.quest1 = Quest.quest1();
+
+        // TEST
+        this.vis.creo += 5;
+        Vis.allVis.forEach(v => this.unlocks[v+'Access'] = true);
+        this.addProd(5, 'perdo');
     }
+
+
     public addProd(byTick: number, visType: string) {
         this.vis.addProd(byTick, visType);
         this.saveState();

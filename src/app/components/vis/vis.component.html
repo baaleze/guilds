@@ -1,17 +1,22 @@
 <div class="vis-container">
-<div class="decagon" [hidden]="true">
-    <span class="decagon-rect-1"></span>
-    <span class="decagon-rect-2"></span>
-    <span class="decagon-rect-3"></span>
-    <span class="decagon-rect-4"></span>
-    <span class="decagon-rect-5"></span>
-    <span class="pentagon-rect-1"></span>
-    <span class="pentagon-rect-2"></span>
-    <span class="pentagon-rect-3"></span>
-    <span class="pentagon-rect-4"></span>
-    <span class="pentagon-rect-5"></span>
-</div>
-<ng-container *ngFor="let v of allVis">
-    <span *ngIf="unlocks[v + 'Access']" [className]="v + ' vis-count'">{{vis[v]}}</span>
-</ng-container>
+    <div class="decagon" >
+        <ng-container *ngIf="unlocks.formAccess()">
+            <span class="decagon-rect-1"></span>
+            <span class="decagon-rect-2"></span>
+            <span class="decagon-rect-3"></span>
+            <span class="decagon-rect-4"></span>
+            <span class="decagon-rect-5"></span>
+        </ng-container>
+        <ng-container *ngIf="unlocks.verbAccess()">
+            <span class="pentagon-rect-1"></span>
+            <span class="pentagon-rect-2"></span>
+            <span class="pentagon-rect-3"></span>
+            <span class="pentagon-rect-4"></span>
+            <span class="pentagon-rect-5"></span>
+        </ng-container>
+
+        <ng-container *ngFor="let v of allVis">
+                <span *ngIf="unlocks[v + 'Access']" [className]="v + ' vis-count'" [class.spinning]="productions[v]">{{vis[v]}}</span>
+        </ng-container>
+    </div>
 </div>

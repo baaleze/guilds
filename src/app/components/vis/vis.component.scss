@@ -1,12 +1,9 @@
 
 .vis-container {
     width: 400px;
-    position: absolute;
-    left: 35px;
-    top: 20px;
+    height: 420px;
 }
 .decagon {
-    margin-top: 130px;
     position: relative;
 
     .decagon-rect-1, .decagon-rect-2, .decagon-rect-3, .decagon-rect-4, .decagon-rect-5 {
@@ -15,6 +12,8 @@
         height: 104px;
         border: 2px solid #892be280;
         box-shadow: 0 0 20px 3px #892be280;
+        top: 162px;
+        left: 30px;
     }
     .decagon-rect-1 {
         transform: rotate(36deg);
@@ -31,8 +30,8 @@
     
     .pentagon-rect-1, .pentagon-rect-2, .pentagon-rect-3, .pentagon-rect-4, .pentagon-rect-5 {
         position: absolute;
-        left: 110px;
-        top: 12px;
+        left: 140px;
+        top: 174px;
         width: 106px;
         height: 81px;
         border-right: 2px solid red;
@@ -54,9 +53,7 @@
     }
 }
 
-.vis-count {
-    font-size: 30px;
-}
+
 
 @keyframes rotating {
     from {
@@ -66,93 +63,106 @@
       transform: rotate(360deg);
     }
   }
-
-.vis-count::after {
+.vis-count {
+    font-size: 30px;
+    text-align: center;
+}
+.vis-count.spinning::after {
     content: "";
     width: 60px;
     height: 60px;
     border: 2px dashed white;
     border-radius: 40px;
     display: block;
-    margin-left: -24px;
-    margin-top: -48px;
+    margin-top: -54px;
     animation: rotating 8s linear infinite;
+    background-color: #fff2;
+    box-shadow: 0 0 3px 3px #fff3;
+}
+.vis-count::after {
+    content: "";
+    width: 60px;
+    height: 60px;
+    border: 2px dashed #fff0;
+    border-radius: 40px;
+    display: block;
+    margin-top: -54px;
     background-color: #fff2;
     box-shadow: 0 0 3px 3px #fff3;
 }
 
 .creo {
     position: absolute;
-    top: 140px;
-    left: 92px;
+    top: 170px;
+    left: 98px;
 }
 .perdo {
     position: absolute;
-    top: 140px;
-    left: 218px;
+    top: 170px;
+    left: 224px;
 }
 .rego {
     position: absolute;
-    top: 100px;
-    left: 156px;
+    top: 130px;
+    left: 162px;
 }
 .muto {
     position: absolute;
-    top: 220px;
-    left: 117px;
+    top: 250px;
+    left: 123px;
 }
 .intellego {
     position: absolute;
-    top: 220px;
-    left: 194px;
+    top: 250px;
+    left: 200px;
 }
 .vim {
     position: absolute;
-    top: 0px;
-    left: 156px;
+    top: 30px;
+    left: 162px;
 }
 .aquam {
     position: absolute;
-    top: 110px;
-    left: -5px;
+    top: 140px;
+    left: 1px;
 }
 .terram {
     position: absolute;
-    top: 300px;
-    left: 57px;
+    top: 330px;
+    left: 63px;
 }
 .ignem {
     position: absolute;
-    top: 110px;
-    left: 319px;
+    top: 140px;
+    left: 325px;
 }
 .auram {
     position: absolute;
-    top: 300px;
-    left: 255px;
+    top: 340px;
+    left: 261px;
 }
 .herbam {
     position: absolute;
-    top: 220px;
-    left: -5px;
+    top: 250px;
+    left: 1px;
 }
 .corpus {
     position: absolute;
-    top: 30px;
-    left: 257px;
+    top: 60px;
+    left: 263px;
 }
 .animal {
     position: absolute;
-    top: 333px;
-    left: 156px;
+    top: 363px;
+    left: 162px;
 }
 .mentem {
     position: absolute;
-    top: 220px;
-    left: 319px;
+    top: 250px;
+    left: 325px;
 }
 .imaginem {
     position: absolute;
-    top: 30px;
-    left: 56px;
+    top: 60px;
+    left: 62px;
 }
