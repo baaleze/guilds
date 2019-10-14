@@ -1,6 +1,7 @@
 import { Component, OnInit, Input } from '@angular/core';
 import { Vis } from 'src/app/models/vis';
 import { StateService } from 'src/app/state.service';
+import { Unlocks } from 'src/app/models/unlocks';
 
 @Component({
   selector: 'app-vis',
@@ -10,11 +11,13 @@ import { StateService } from 'src/app/state.service';
 export class VisComponent implements OnInit {
 
   // for template access
-  allVis = Vis.allVis;
-  vis: Vis;
+  public allVis = Vis.allVis;
+  public vis: Vis;
+  public unlocks: Unlocks;
 
   constructor(state: StateService) {
     this.vis = state.gameState.vis;
+    this.unlocks = state.gameState.unlocks;
   }
 
   ngOnInit() {

@@ -1,10 +1,20 @@
+import { QuestStepEnum } from './queststepenum';
+import { GameState } from './gamestate';
 import { QuestStep } from './queststep';
 
 export class Quest {
 
-
     public steps: QuestStep[];
     public progress: number;
+
+
+    // Quests def
+    public static quest1(): Quest {
+        return new Quest(new QuestStep(QuestStepEnum.STEP_CHOOSE_STARTING_PLACE_1,
+                s => {},
+                s => true)
+        );
+    }
 
     public constructor(...s: QuestStep[]) {
         this.steps = s;
@@ -15,19 +25,26 @@ export class Quest {
         return this.steps[this.progress];
     }
 
-    public nextStep() {
-        if (this.progress < this.steps.length-1) {
+    public nextStep(state: GameState) {
+        if (this.currentStep.isComplete(state) && this.progress < this.steps.length - 1) {
+            this.currentStep.onComplete(state);
             this.progress++;
         }
     }
 
-    public advanceTo(step: QuestStep): void {
-        const i = this.steps.indexOf(step);
-        if (i != -1) {
-            this.progress = i; 
+    public advanceTo(step: QuestStep, state: GameState): void {
+        if (this.currentStep.isComplete(state)) {
+            const i = this.steps.indexOf(step);
+            if (i !== -1) {
+                this.currentStep.onComplete(state);
+                this.progress = i;
+            } else {
+                console.error(`Step ${step} not found in this quest!`);
+            }
         } else {
-            console.error(`Step ${step} not found in this quest!`);
+            console.error(`Step ${step} not complete!`);
         }
     }
+
 }
 

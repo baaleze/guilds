@@ -1,7 +1,10 @@
-export enum QuestStep {
-    // STEPS REFERENCE
-    STEP_CHOOSE_STARTING_PLACE_1,
-    STEP_CHOOSE_STARTING_PLACE_2,
-    STEP_CHOOSE_STARTING_PLACE_3,
+import { QuestStepEnum } from './queststepenum';
+import { GameState } from './gamestate';
 
+export class QuestStep {
+    constructor(
+        public step: QuestStepEnum,
+        public onComplete: (s: GameState) => void,
+        public isComplete: (s: GameState) => boolean
+    ) {}
 }

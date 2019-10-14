@@ -1,6 +1,7 @@
 export class Vis {
 
-    public static allVis = [ 'perdo', 'creo', 'muto', 'rego', 'intellego', 'aquam', 'ignem', 'terram', 'auram', 'herbam', 'corpus', 'animal', 'imaginem', 'mentem', 'vim'];
+    public static allVis = [ 'perdo', 'creo', 'muto', 'rego', 'intellego',
+        'aquam', 'ignem', 'terram', 'auram', 'herbam', 'corpus', 'animal', 'imaginem', 'mentem', 'vim'];
 
     public perdo = 0;
     public creo = 0;
@@ -19,7 +20,20 @@ export class Vis {
     public mentem = 0;
     public vim = 0;
 
+    public productions = {};
+
     public constructor() {
     }
-    
+
+    public addProd(byTick: number, visType: string) {
+        if (this.productions[visType]) {
+            this.productions[visType] += byTick;
+        } else {
+            this.productions[visType] = byTick;
+        }
+    }
+
+    public tick() {
+        Vis.allVis.forEach(v => this[v] += this.productions[v] ? this.productions[v] : 0);
+    }
 }
