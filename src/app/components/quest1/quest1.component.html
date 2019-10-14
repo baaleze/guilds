@@ -1,1 +1,14 @@
-<p>quest1 works!</p>
+<div *ngIf="quest.currentStep.step === QuestStep.START_1">
+    <p class="lore" i18n>
+        After days of travel, you arrive near a forest. Not a house or tower in sight.<br>
+        Good.<br>
+        This will be a good place to begin your research, for what you need is a wild and unspoiled land, devoid of civilization.<br>
+        One week ago, you decided to leave your old life and start an ambitious project, with only the grimoire given to you by your parens.
+        A grimoire on all things magical! During the trip, you tried to read some page at random, but nothing made sense.<br>
+        Your parens had warned you though, that to understand what was written, you would need to understand magic itself. They told you that 
+        the best place are uninhabited lands, where the magic aura is rich and powerful.
+        <br><br><br>
+        <a (click)="advance()">Next...</a>
+    </p>
+
+</div>

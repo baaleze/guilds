@@ -20,4 +20,8 @@ export class Quest1Component implements OnInit {
   ngOnInit() {
   }
 
+  public advance(...params: any[]) {
+    this.quest.nextStep(this.state.gameState, params);
+  }
+
 }

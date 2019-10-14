@@ -10,8 +10,15 @@ export class Quest {
 
     // Quests def
     public static quest1(): Quest {
-        return new Quest(new QuestStep(QuestStepEnum.STEP_CHOOSE_STARTING_PLACE_1,
+        return new Quest(
+            new QuestStep(QuestStepEnum.START_1,
                 s => {},
+                s => true),
+            new QuestStep(QuestStepEnum.START_2,
+                (s, p) => s.initStartZone(p[0]),
+                s => true),
+            new QuestStep(QuestStepEnum.START_3,
+                (s, p) => s.initStartZone(p[0]),
                 s => true)
         );
     }
@@ -25,9 +32,9 @@ export class Quest {
         return this.steps[this.progress];
     }
 
-    public nextStep(state: GameState) {
+    public nextStep(state: GameState, ...params: any[]) {
         if (this.currentStep.isComplete(state) && this.progress < this.steps.length - 1) {
-            this.currentStep.onComplete(state);
+            this.currentStep.onComplete(state, params);
             this.progress++;
         }
     }

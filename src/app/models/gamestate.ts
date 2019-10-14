@@ -1,6 +1,7 @@
 import { Vis } from './vis';
 import { Quest } from './quest';
 import { Unlocks } from './unlocks';
+import { Zone } from './zone';
 
 export class GameState {
 
@@ -12,15 +13,32 @@ export class GameState {
     // progress
     public quest1: Quest;
 
+    // map resources
+    public zones: Zone[][] = [];
+
     public constructor() {
         this.vis = new Vis();
         this.unlocks = new Unlocks();
         this.quest1 = Quest.quest1();
+    }
 
-        // TEST
-        this.vis.creo += 5;
-        Vis.allVis.forEach(v => this.unlocks[v+'Access'] = true);
-        this.addProd(5, 'perdo');
+    public initStartZone(startingTerrain: 'WATER'|'CAVE'|'FOREST') {
+        const z = new Zone();
+        this.zones[0] = [z]; // put it in 0,0
+        switch(startingTerrain) {
+            case 'CAVE':
+                z.productions['terram'] = 1;
+                this.unlocks.terramAccess = true;
+                break;
+            case 'WATER':
+                z.productions['aquam'] = 1;
+                this.unlocks.aquamAccess = true;
+                break;
+            case 'FOREST':
+                z.productions['herbam'] = 1;
+                this.unlocks.herbamAccess = true;
+                break;
+        }
     }
 
 
