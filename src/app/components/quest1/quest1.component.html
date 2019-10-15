@@ -12,3 +12,21 @@
     </p>
 
 </div>
+<div *ngIf="quest.currentStep.step === QuestStep.START_2">
+    <p class="lore" i18n>
+        This land may be be perfect, but to work in good conditions you first need a laboratory.
+        You remember what your parens said: "Places of power is what you must seek. If you open your eyes, they will reveal themselves to you."<br><br>
+        <a (click)="advance('FOREST')">
+            You find a giant tree in the forest, with enough space under its root to fit your laboratory.
+        </a><br><br>
+        <a (click)="advance('WATER')">
+            Following the noise, you stumble upon a waterfall where strange colors come and go in the sunlight.
+            With some wood and work, you could make a shelter under the nearby rocks, big enough to fit your laboratory.
+        </a><br><br>
+        <a (click)="advance('CAVE')">
+            You notice a dark hole on the side of a small hill, a cave! You expect the inside to be dark, but it is lit up with many crystal clusters reflecting the outside light.
+            The cave is big enough to fit your laboratory.
+        </a><br><br>
+    </p>
+
+</div>

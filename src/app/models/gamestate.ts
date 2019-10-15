@@ -22,26 +22,6 @@ export class GameState {
         this.quest1 = Quest.quest1();
     }
 
-    public initStartZone(startingTerrain: 'WATER'|'CAVE'|'FOREST') {
-        const z = new Zone();
-        this.zones[0] = [z]; // put it in 0,0
-        switch(startingTerrain) {
-            case 'CAVE':
-                z.productions['terram'] = 1;
-                this.unlocks.terramAccess = true;
-                break;
-            case 'WATER':
-                z.productions['aquam'] = 1;
-                this.unlocks.aquamAccess = true;
-                break;
-            case 'FOREST':
-                z.productions['herbam'] = 1;
-                this.unlocks.herbamAccess = true;
-                break;
-        }
-    }
-
-
     public addProd(byTick: number, visType: string) {
         this.vis.addProd(byTick, visType);
         this.saveState();

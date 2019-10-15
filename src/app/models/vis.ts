@@ -37,3 +37,6 @@ export class Vis {
         Vis.allVis.forEach(v => this[v] += this.productions[v] ? this.productions[v] : 0);
     }
 }
+
+export type VisType = 'perdo'|'creo'|'muto'|'rego'|'intellego'|
+    'aquam'|'ignem'|'terram'|'auram'|'herbam'|'corpus'|'animal'|'imaginem'|'mentem'|'vim';

@@ -21,7 +21,7 @@ export class Quest1Component implements OnInit {
   }
 
   public advance(...params: any[]) {
-    this.quest.nextStep(this.state.gameState, params);
+    this.quest.nextStep(this.state.gameState, ...params);
   }
 
 }
