@@ -67,6 +67,13 @@
     font-size: 30px;
     text-align: center;
 }
+.vis-count-name {
+    font-size: 15px;
+    position: absolute;
+    top: -15px;
+    left: 0px;
+    width: 60px;
+}
 .vis-count.spinning::after {
     content: "";
     width: 60px;
