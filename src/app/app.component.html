@@ -10,9 +10,18 @@
             </div>
     </div>
     <div class="col-xs-12 col-lg-6">
-        <app-main></app-main>
+        <ng-container *ngIf="!quest1Complete()">
+            <app-quest1></app-quest1>
+        </ng-container>
+        
+        <ng-container *ngIf="quest1Complete()">
+            <app-lab></app-lab>
+            <app-log></app-log>
+        </ng-container>
     </div>
     <div class="col-xs-12 col-lg-3">
-        RIGHT
+        <ng-container *ngIf="quest1Complete()">
+            <app-journal></app-journal>
+        </ng-container>
     </div>
 </div>

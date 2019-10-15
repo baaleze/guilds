@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { StateService } from './state.service';
 
 @Component({
   selector: 'app-root',
@@ -7,5 +8,10 @@ import { Component } from '@angular/core';
 })
 export class AppComponent {
   
+  constructor(private state: StateService) {}
+
+  public quest1Complete() {
+    return this.state.gameState.quest1.isComplete();
+  }
 
 }

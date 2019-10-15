@@ -19,7 +19,7 @@ export class Quest {
             new QuestStep(QuestStepEnum.START_2,
                 (s, p) => Quest.initStartZone(s, p[0]),
                 s => true),
-            new QuestStep(QuestStepEnum.START_3, // TODO
+            new QuestStep(QuestStepEnum.START_FINAL, // TODO
                 (s, p) => {},
                 s => true)
         );
@@ -62,6 +62,10 @@ export class Quest {
             this.currentStep.onComplete(state, params);
             this.progress++;
         }
+    }
+
+    public isComplete(): boolean {
+        return this.progress === this.steps.length - 1;
     }
 
     public advanceTo(step: QuestStep, state: GameState): void {
