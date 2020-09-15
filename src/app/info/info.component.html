@@ -1,0 +1,34 @@
+<div *ngIf="target">
+    <p>{{target.name}}</p>
+    <div *ngIf="type === 'city'">
+        <p>Population: {{target.pop}}</p>
+        <p>Wealth: {{target.wealth}}</p>
+        Industries:<br>
+        <ul><li *ngFor="let i of target.industries">
+            {{i.name}}<br>
+            <app-stock [resources]="i.resources"></app-stock>
+        </li></ul>
+        <p>[{{target.position.x}},{{target.position.y}}]</p>
+        <app-stock [resources]="i.resources"></app-stock>
+    </div>
+    <div *ngIf="type === 'faction'">
+        <p>Members: {{target.members}}</p>
+        <p>Wealth: {{target.wealth}}</p>
+        Reputation:<br>
+        <ul><li *ngFor="let r of target.reputation | keyvalue">
+            {{r.key.name}} : {{r.value}}
+        </li></ul>
+        <p>[{{target.position.x}},{{target.position.y}}]</p>
+    </div>
+    <div *ngIf="type === 'people'">
+        <p>Trade: {{target.trade}}</p>
+        <p>Guard: {{target.guard}}</p>
+        <p>Stealth: {{target.stealth}}</p>
+        <p *ngIf="target.nbPeople > 1">Size: {{target.nbPeople}}</p>
+        Reputation:<br>
+        <ul><li *ngFor="let r of target.reputation | keyvalue">
+            {{r.key.name}} : {{r.value}}
+        </li></ul>
+        <p>[{{target.position.x}},{{target.position.y}}]</p>
+    </div>
+</div>

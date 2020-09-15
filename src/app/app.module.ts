@@ -3,16 +3,23 @@ import { NgModule } from '@angular/core';
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
+import { WorldgenService } from './generation/worldgen.service';
+import { InfoComponent } from './info/info.component';
+import { StockComponent } from './stock/stock.component';
 
 @NgModule({
   declarations: [
-    AppComponent
+    AppComponent,
+    InfoComponent,
+    StockComponent
   ],
   imports: [
     BrowserModule,
     AppRoutingModule
   ],
-  providers: [],
+  providers: [
+    WorldgenService
+  ],
   bootstrap: [AppComponent]
 })
 export class AppModule { }
