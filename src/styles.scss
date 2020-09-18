@@ -1,1 +1,43 @@
 /* You can add global styles to this file, and also import other style files */
+
+html {
+    font-family: 'Yanone Kaffeesatz', sans-serif;
+}
+
+#map {
+    display: inline-block;
+    position: relative;
+    canvas {
+        position: absolute;
+        top: 5px;
+        left: 5px;
+    }
+}
+
+#info-panel {
+    position: absolute;
+    right: 5px;
+    top: 5px;
+    width: calc(100% - 1040px);
+    height: calc(100% - 5px);
+    overflow: scroll;
+
+    .info-box {
+        padding: 2px;
+        border: 1px solid grey;
+        margin-bottom: 5px;
+    }
+
+    ul {
+        margin: 0px;
+        list-style: none;
+        li:before {
+            content: "\203A"
+        }
+    }
+
+    .half-info {
+        display: inline-block;
+        width: 48%;
+    }
+}

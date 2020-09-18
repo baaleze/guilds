@@ -1,15 +1,27 @@
-<div *ngIf="target">
-    <p>{{target.name}}</p>
+<div *ngIf="target && target" class="info-box">
+    <h3 *ngIf="target.nation">{{target.name}} of Nation {{target.nation.name}} [{{target.position.x}},{{target.position.y}}]  Population: {{target.pop}}  Wealth: {{target.wealth}}
+        <span *ngIf="target.port">Has a port [{{target.port.x}},{{target.port.y}}]</span>
+    </h3>
     <div *ngIf="type === 'city'">
-        <p>Population: {{target.pop}}</p>
-        <p>Wealth: {{target.wealth}}</p>
-        Industries:<br>
-        <ul><li *ngFor="let i of target.industries">
-            {{i.name}}<br>
-            <app-stock [resources]="i.resources"></app-stock>
-        </li></ul>
-        <p>[{{target.position.x}},{{target.position.y}}]</p>
-        <app-stock [resources]="i.resources"></app-stock>
+        <div class="half-info">Industries:<br>
+            <ul><li *ngFor="let i of target.industries">
+                {{i.name}} / {{i.power}}
+            </li></ul>
+        </div>
+        <div class="half-info">
+            Resources:<br>
+            <app-stock [resources]="target.resources"></app-stock>
+        </div>
+        <div  class="half-info">Direct roads:<br>
+            <ul><li *ngFor="let r of target.roads">
+                To {{r.to.name}} (length: {{r.path.length}}, cost: {{r.cost}})
+            </li></ul>
+        </div>
+        <div  class="half-info">Rivers:<br>
+            <ul><li *ngFor="let r of target.rivers">
+                {{r}}
+            </li></ul>
+        </div>
     </div>
     <div *ngIf="type === 'faction'">
         <p>Members: {{target.members}}</p>

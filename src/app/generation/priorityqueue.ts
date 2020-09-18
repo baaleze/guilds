@@ -19,7 +19,7 @@ export class PriorityQueue<T> {
     peek(): T {
         return this.heap[top];
     }
-    push(...values): number {
+    push(...values: T[]): number {
         values.forEach(value => {
             this.heap.push(value);
             this.siftUp();

@@ -1,7 +1,17 @@
 <div class="main">
-  <canvas #canvas></canvas>
-  <div *ngIf="world">
-    Cities
+  <!--<div *ngFor="let l of languages">
+    <h2>{{l.nationName}}</h2> - {{l.cons}} {{l.vowels}}<br>
+    <div *ngFor="let i of l.infos">
+      {{i.type}}<br>
+      Syllabes : {{i.syllabes}}<br>
+      Patterns : {{i.patterns}}<br>
+      Words : {{i.words}}<br>
+    </div>
+  </div>-->
+  <div id = "map">
+  </div>
+  <div *ngIf="world" id="info-panel">
+    <h2>Cities</h2>
     <app-info *ngFor="let c of world.cities" [target]="c"></app-info>
   </div>
 </div>
