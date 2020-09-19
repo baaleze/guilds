@@ -1,7 +1,7 @@
 import { Util } from 'src/app/util';
 
 // const allConsonants = 'bcdfghjklmnpqrstvwxyz'.split('');
-const allConsonants = 'bcdfghjklmnpqrstvwxz'.split('');
+const allConsonants = 'bbccccdddfffghhjkllllllmmmmnnnnnpppqrrrrrrsssssstttttvwwxz'.split('');
 const diacConsonants = 'čçšž'.split('');
 // const allVowels = 'aeiouyàéèâêôîûëäïöüòìùỳŷÿãåøæœ'.split('');
 const allVowels = 'aeiouy'.split('');
@@ -13,7 +13,7 @@ const wordPatterns = [
     'w', 'w w', 'w w w', 'w w', 'w', 'w-w', 'w-w', 'w w', 'w\'w', 'w\'w', 'w-w', 'w\'w', 'w-w-w', 'ww', 'ww\'w'
 ];
 const NUM_MAX_DIAC_VOWELS = 5;
-const NUM_COMMON_SYLLABE = 20;
+const NUM_COMMON_SYLLABE = 30;
 const NUM_WORD_PATTERNS = 3;
 const NUM_WORD_BASE = 100;
 
@@ -47,15 +47,15 @@ export class LanguageGenerator {
         }
 
         // only use 80% of consonents
-        for (let n = 0; n < allConsonants.length; n++) {
+        for (let n = 0; n < allConsonants.length - 1; n++) {
             const c = Util.randomInArray(con);
-            con = con.filter(letter => letter !== c);
+            con.splice(con.indexOf(c), 1);
             this.consonantProbas.set(c, n * 3);
         }
         // only use 50% of vowels
-        for (let n = 0; n < allVowels.length; n++) {
+        for (let n = 0; n < allVowels.length - 1; n++) {
             const v = Util.randomInArray(vow);
-            vow = vow.filter(letter => letter !== v);
+            vow.splice(vow.indexOf(v), 1);
             this.vowelProbas.set(v, n * 3);
         }
     }
@@ -66,16 +66,9 @@ export class LanguageGenerator {
             let s = '';
             // choose one pattern at random
             const pattern = Util.randomInArray(syllabePatterns);
-            let repeat = undefined;
             pattern.split('').forEach(l => {
-                if (l === 'c' && !repeat || l === 'k') {
-                    const c = Util.randomInWeightedMap(this.consonantProbas);
-                    if (l === 'c') {
-                        repeat = c;
-                    }
-                    s += c;
-                } else if (l === 'c' && repeat) {
-                    s += repeat;
+                if (l === 'c') {
+                    s += Util.randomInWeightedMap(this.consonantProbas);
                 } else {
                     s += Util.randomInWeightedMap(this.vowelProbas);
                 }

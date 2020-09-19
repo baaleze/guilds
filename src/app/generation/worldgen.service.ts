@@ -211,7 +211,7 @@ export class WorldgenService {
       }
       world.cities.forEach(c => {
         c.name = c.nation.lang.generateName('city');
-        c.rivers.forEach(r => this.nameRiver(r, c.nation.lang, world.map));
+        c.rivers = c.rivers.map(r => this.nameRiver(r, c.nation.lang, world.map));
       });
       obs.next();
       obs.complete();
@@ -222,7 +222,7 @@ export class WorldgenService {
     return 1 + (to.riverName ? 2 : 0) + (from.altitude - to.altitude) + (to.type === TileType.SEA ? 5 : 0);
   }
 
-  nameRiver(riverId: string, lang: LanguageGenerator, map: Tile[][]): void {
+  nameRiver(riverId: string, lang: LanguageGenerator, map: Tile[][]): string {
     if (!isNaN(Number(riverId))) {
       // river is a number, it needs a name
       const name = lang.generateName('river');
@@ -232,6 +232,9 @@ export class WorldgenService {
           t.riverName = name;
         }
       }));
+      return name;
+    } else {
+      return riverId;
     }
   }
 
