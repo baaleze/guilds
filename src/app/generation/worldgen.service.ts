@@ -8,7 +8,7 @@ import { Observable } from 'rxjs';
 import { LanguageGenerator } from './language/language.generator';
 import { Util } from '../util';
 
-export const WORLD_SIZE = 256;
+export const WORLD_SIZE = 512;
 const NB_RIVERS = 50;
 const NB_CITIES = 30;
 const CITY_SCORE_RADIUS = 3;
@@ -155,7 +155,7 @@ export class WorldgenService {
 
   buildRegions(world: World): Observable<void> {
     return new Observable(obs => {
-      const queue = new PriorityQueue<{t: Tile, score: number}>((a, b) => a.score > b.score);
+      const queue = new PriorityQueue<{t: Tile, score: number}>((a, b) => a.score < b.score);
       // put the neighbors of all cities in the queue
       world.cities.forEach(city => {
         // init neighbours
@@ -172,7 +172,7 @@ export class WorldgenService {
         this.getNeighbors(world.map, next.t.position).forEach(n => {
           if (!n.region) { // not yet any region
             n.region = next.t.region;
-            queue.push({t: n, score: this.getMovementScore(next.t, n)});
+            queue.push({t: n, score: next.score + this.getMovementScore(next.t, n)});
           } else if (n.region !== next.t.region) {
             next.t.isFrontier = true;
             n.isFrontier = true;
@@ -219,7 +219,7 @@ export class WorldgenService {
   }
 
   getMovementScore(from: Tile, to: Tile): number {
-    return 1 + (to.riverName ? 5 : 0) + (from.altitude - to.altitude) * 2 + (to.type === TileType.SEA ? 30 : 0);
+    return 1 + (to.riverName ? 2 : 0) + (from.altitude - to.altitude) + (to.type === TileType.SEA ? 5 : 0);
   }
 
   nameRiver(riverId: string, lang: LanguageGenerator, map: Tile[][]): void {

@@ -82,7 +82,7 @@ export class AppComponent implements AfterViewInit {
 
     // generate nations
     for (let n = 0; n < NB_NATIONS; n++) {
-      const nation = new Nation(Util.randomInArray(nationColors));
+      const nation = new Nation(nationColors[n]);
       this.world.nations.push(nation);
     }
 
@@ -115,8 +115,8 @@ export class AppComponent implements AfterViewInit {
     this.cx.clearRect(0, 0, this.cx.canvas.width, this.cx.canvas.height);
     this.world.map.forEach((line, x) => line.forEach((t, y) => {
       // draw each tile
-      if (regionMode && t.isFrontier) {
-        const color = t.region.color;
+      if (regionMode && t.isFrontier && t.region.nation) {
+        const color = t.region.nation.color;
         this.cx.fillStyle = `rgb(${color[0]}, ${color[1]}, ${color[2]})`;
         this.cx.fillRect(x * MAP_SCALE, y * MAP_SCALE, MAP_SCALE, MAP_SCALE);
       } else {
@@ -126,10 +126,16 @@ export class AppComponent implements AfterViewInit {
       // fill region color with transparency
       if (t.region && t.region.nation) {
         const color = t.region.nation.color;
-        this.cx.fillStyle = `rgba(${color[0]}, ${color[1]}, ${color[2]}, 0.2)`;
+        this.cx.fillStyle = `rgba(${color[0]}, ${color[1]}, ${color[2]}, 0.3)`;
         this.cx.fillRect(x * MAP_SCALE, y * MAP_SCALE, MAP_SCALE, MAP_SCALE);
       }
     }));
+    this.cx.fillStyle = 'black';
+    if (this.world.cities) {
+      this.world.cities.forEach(c => {
+        this.cx.fillRect((c.position.x - 2) * MAP_SCALE, (c.position.y - 2) * MAP_SCALE, MAP_SCALE * 4, MAP_SCALE * 4);
+      });
+    }
 
     const base = new PIXI.BaseTexture(this.cx.canvas);
     const tex = new PIXI.Texture(base);
@@ -139,7 +145,7 @@ export class AppComponent implements AfterViewInit {
     if (this.world.cities && this.cityTexts.size === 0) {
       this.world.cities.forEach(c => {
         const text = new PIXI.Text(c.name, this.textStyle);
-        text.position.set(c.position.x * MAP_SCALE, c.position.y * MAP_SCALE);
+        text.position.set((c.position.x + 2) * MAP_SCALE, c.position.y * MAP_SCALE);
         this.app.stage.addChild(text);
         this.cityTexts.set(c, text);
       });

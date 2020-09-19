@@ -7,13 +7,13 @@ const diacConsonants = 'čçšž'.split('');
 const allVowels = 'aeiouy'.split('');
 const diacVowels = 'àéèâêôîûëäïöüòìùỳŷÿãåøæœ'.split('');
 const syllabePatterns = [
-    'v', 'v', 'v', 'cv', 'cv', 'cv', 'cvc', 'cvc', 'cvc', 'ccv', 'ccv',
+    'v', 'cv', 'cvc', 'cvc', 'cvc', 'ccv', 'ckv', 'vv'
 ];
 const wordPatterns = [
-    'w', 'w', 'w', 'w w', 'w w w', 'w w', 'w', 'w', 'w', 'w-w', 'w-w', 'w w', 'w\'w', 'w\'w', 'w\'w w', 'w-w', 'w-w w', 'w\'w-w', 'w\'w', 'w-w-w', 'ww', 'ww\'w'
+    'w', 'w w', 'w w w', 'w w', 'w', 'w-w', 'w-w', 'w w', 'w\'w', 'w\'w', 'w-w', 'w\'w', 'w-w-w', 'ww', 'ww\'w'
 ];
 const NUM_MAX_DIAC_VOWELS = 5;
-const NUM_COMMON_SYLLABE = 10;
+const NUM_COMMON_SYLLABE = 20;
 const NUM_WORD_PATTERNS = 3;
 const NUM_WORD_BASE = 100;
 
@@ -50,13 +50,13 @@ export class LanguageGenerator {
         for (let n = 0; n < allConsonants.length; n++) {
             const c = Util.randomInArray(con);
             con = con.filter(letter => letter !== c);
-            this.consonantProbas.set(c, n * 5);
+            this.consonantProbas.set(c, n * 3);
         }
         // only use 50% of vowels
         for (let n = 0; n < allVowels.length; n++) {
             const v = Util.randomInArray(vow);
             vow = vow.filter(letter => letter !== v);
-            this.vowelProbas.set(v, n * 5);
+            this.vowelProbas.set(v, n * 3);
         }
     }
 
@@ -66,9 +66,16 @@ export class LanguageGenerator {
             let s = '';
             // choose one pattern at random
             const pattern = Util.randomInArray(syllabePatterns);
+            let repeat = undefined;
             pattern.split('').forEach(l => {
-                if (l === 'c') {
-                    s += Util.randomInWeightedMap(this.consonantProbas);
+                if (l === 'c' && !repeat || l === 'k') {
+                    const c = Util.randomInWeightedMap(this.consonantProbas);
+                    if (l === 'c') {
+                        repeat = c;
+                    }
+                    s += c;
+                } else if (l === 'c' && repeat) {
+                    s += repeat;
                 } else {
                     s += Util.randomInWeightedMap(this.vowelProbas);
                 }
@@ -100,7 +107,7 @@ export class LanguageGenerator {
         return this.capitalize(pattern.split('').map(s => {
             if (s === 'w') {
                 // a word is 1-4 syllabes
-                const nbSyl = Math.floor(Math.random() * 3) + 1;
+                const nbSyl = Math.floor(Math.random() * 2) + 1;
                 let group = '';
                 for (let ns = 0; ns < nbSyl; ns++) {
                     group += Util.randomInWeightedMap(sy);
