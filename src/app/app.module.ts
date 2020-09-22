@@ -3,12 +3,11 @@ import { NgModule } from '@angular/core';
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
-import { WorldgenService } from './generation/worldgen.service';
 import { InfoComponent } from './info/info.component';
 import { StockComponent } from './stock/stock.component';
-import { AstarService } from './generation/astar.service';
 import { NotifyService } from './notify.service';
 import { ProgressComponent } from './progress/progress.component';
+import { DrawService } from './draw.service';
 
 @NgModule({
   declarations: [
@@ -22,9 +21,8 @@ import { ProgressComponent } from './progress/progress.component';
     AppRoutingModule
   ],
   providers: [
-    WorldgenService,
-    AstarService,
-    NotifyService
+    NotifyService,
+    DrawService
   ],
   bootstrap: [AppComponent]
 })

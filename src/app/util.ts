@@ -1,3 +1,4 @@
+import { Tile, TileType, Position } from './model/models';
 
 export class Util {
   static randomInArray<T>(arr: T[]): T {
@@ -26,5 +27,22 @@ export class Util {
           }
       });
       return res;
+  }
+
+  static getClosestTileOfType(map: Tile[][], x: number, y: number, type: TileType, radius: number): Position {
+    let pos: Position;
+    let minDist = 1000;
+    for (let i = x - radius; i < x + radius; i++) {
+      for (let j = y - radius; j < y + radius; j++) {
+        if ((i >= 0 && i < map.length && j >= 0 && j < map[x].length)) { // bounds
+          // get tile
+          if(map[i][j].type === type && Util.dist(x, y, i, j) < minDist) {
+            pos = new Position(i, j);
+            minDist = Util.dist(x, y, i, j);
+          }
+        }
+      }
+    }
+    return pos;
   }
 }

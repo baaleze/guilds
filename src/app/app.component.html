@@ -1,17 +1,24 @@
 <div class="main">
-  <!--<div *ngFor="let l of languages">
-    <h2>{{l.nationName}}</h2> - {{l.cons}} {{l.vowels}}<br>
-    <div *ngFor="let i of l.infos">
-      {{i.type}}<br>
-      Syllabes : {{i.syllabes}}<br>
-      Patterns : {{i.patterns}}<br>
-      Words : {{i.words}}<br>
-    </div>
-  </div>-->
+  <div id="menu">
+    <label [class.disabled]="!draw.showBiomes">Show Biomes</label>
+    <input [checked]="draw.showBiomes" type="checkbox" id="showBiomes" (change)="showBiomes($event.currentTarget.checked)">&nbsp;&nbsp;
+    <label [class.disabled]="!draw.showAltitude">Show Altitude</label>
+    <input [checked]="draw.showAltitude" type="checkbox" id="showAltitude" (change)="showAltitude($event.currentTarget.checked)">&nbsp;&nbsp;
+    <label [class.disabled]="!draw.showCities">Show Cities</label>
+    <input [checked]="draw.showCities" type="checkbox" id="showCities" (change)="showCities($event.currentTarget.checked)">&nbsp;&nbsp;
+    <label [class.disabled]="!draw.showRoads">Show Roads</label>
+    <input [checked]="draw.showRoads" type="checkbox" id="showRoads" (change)="showRoads($event.currentTarget.checked)">&nbsp;&nbsp;
+    <label [class.disabled]="!draw.showRegions">Show Regions</label>
+    <input [checked]="draw.showRegions" type="checkbox" id="showRegions" (change)="showRegions($event.currentTarget.checked)">&nbsp;&nbsp;
+    <label [class.disabled]="!draw.showNations">Show Nations</label>
+    <input [checked]="draw.showNations" type="checkbox" id="showNations" (change)="showNations($event.currentTarget.checked)">
+  </div>
   <div id = "map">
   </div>
-  <div *ngIf="world" id="info-panel">
-    <h2>Cities</h2>
-    <app-info *ngFor="let c of world.cities" [target]="c"></app-info>
+  <div *ngIf="log.length > 0" id="info-panel">
+    <div *ngFor="let l of log">{{l}}</div>
+  </div>
+  <div *ngIf="picked" id="info-panel">
+    <app-info [target]="picked"></app-info>
   </div>
 </div>
