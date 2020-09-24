@@ -117,13 +117,13 @@ function buildRoadsRecursive(map: Tile[][], cities: City[], seaRoute: boolean): 
           const path = findPath(map, city.port, c.port, seaRoute);
           if (path) {
             path.forEach(p => map[p.x][p.y].isSeaRoad = true);
-            city.roads.push(new Road(c, path, path[path.length - 1].g));
+            city.roads.push(new Road(city, c, path, path[path.length - 1].g));
           }
         } else {
           const path = findPath(map, city.position, c.position, seaRoute);
           if (path) {
             path.forEach(p => map[p.x][p.y].isRoad = true);
-            city.roads.push(new Road(c, path, path[path.length - 1].g));
+            city.roads.push(new Road(city, c, path, path[path.length - 1].g));
           }
         }
       }

@@ -128,9 +128,17 @@ export class City {
 
 export class Road {
     constructor(
-        private to: City,
-        private path: Node[],
-        private cost: number
+        public from: City,
+        public to: City,
+        public path: Node[],
+        public cost: number
+    ) {}
+}
+
+export class TradeRoute {
+    constructor(
+        public road: Road,
+        public resource: Resource
     ) {}
 }
 

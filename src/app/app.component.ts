@@ -1,7 +1,8 @@
 import { Component, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
-import { World, TileType, Position, Target } from './model/models';
+import { World, TileType, Position, Target, TradeRoute } from './model/models';
 import { DrawService } from './draw.service';
 import { Util } from './util';
+import { Observable } from 'rxjs';
 
 const WORLD_SIZE = 256;
 
@@ -14,6 +15,7 @@ export class AppComponent implements AfterViewInit {
 
   world: World;
   worldgen: Worker;
+  tasks: Worker;
   picked: Target;
   log: string[] = [];
 
@@ -22,6 +24,7 @@ export class AppComponent implements AfterViewInit {
   ngAfterViewInit(): void {
     this.draw.init(document.getElementById('map'), WORLD_SIZE);
     this.worldgen = new Worker('./worldgen.worker', { type: 'module' });
+    this.tasks = new Worker('./tasks.worker', { type: 'module' });
     this.worldgen.onmessage = ({ data }) => this.handleGenMessage(data);
 
     this.worldgen.postMessage({
@@ -41,12 +44,32 @@ export class AppComponent implements AfterViewInit {
     if (message.type === 'progress') {
       this.log.push(message.msg);
     } else {
-      this.log = ['READY'];
+      // world has been generated
+      this.log = ['WORLD GENERATED'];
       this.world = message.data;
+      // generate trade routes for the first time
+      this.log.push('Generating trade routes for the first time');
+      this.refreshTradeRoutes().subscribe(() => {
+        this.log.push('Generating trade routes FINISHED');
+        this.draw.drawMap(this.world);
+      });
     }
     if (message.data) {
       this.draw.drawMap(message.data);
     }
+  }
+
+  refreshTradeRoutes(): Observable<TradeRoute[]> {
+    return new Observable(obs => {
+      this.tasks.onmessage = ({ data: message }) => {
+        if (message.type === 'computeTradeRouteEnd') {
+          obs.next(message.data);
+          obs.complete();
+          this.tasks.onmessage = undefined;
+        }
+      };
+      this.tasks.postMessage({task: 'computeTradeRoute', data: this.world});
+    });
   }
 
   onPick(p: Position): void {
