@@ -8,6 +8,7 @@ export class World {
     public map: Tile[][];
     public nations: Nation[];
     public neighbours = new Map<City, City[]>();
+    public tradeRoutes: TradeRoute[];
 
     constructor() {}
 }

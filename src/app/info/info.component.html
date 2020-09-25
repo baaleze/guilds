@@ -1,8 +1,8 @@
-<div *ngIf="target && target" class="info-box">
+<div *ngIf="target" class="info-box">
     <h3 *ngIf="target.nation">{{target.name}} of Nation {{target.nation.name}} [{{target.position.x}},{{target.position.y}}]  Population: {{target.pop}}  Wealth: {{target.wealth}}
         <span *ngIf="target.port">Has a port [{{target.port.x}},{{target.port.y}}]</span>
     </h3>
-    <div *ngIf="type === 'city'">
+    <div *ngIf="target.industries">
         <div class="half-info">Industries:<br>
             <ul><li *ngFor="let i of target.industries">
                 {{i.name}} / {{i.power}}
@@ -23,7 +23,7 @@
             </li></ul>
         </div>
     </div>
-    <div *ngIf="type === 'faction'">
+    <div *ngIf="target.members">
         <p>Members: {{target.members}}</p>
         <p>Wealth: {{target.wealth}}</p>
         Reputation:<br>
@@ -32,7 +32,7 @@
         </li></ul>
         <p>[{{target.position.x}},{{target.position.y}}]</p>
     </div>
-    <div *ngIf="type === 'people'">
+    <div *ngIf="target.nbPeople">
         <p>Trade: {{target.trade}}</p>
         <p>Guard: {{target.guard}}</p>
         <p>Stealth: {{target.stealth}}</p>

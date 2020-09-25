@@ -9,20 +9,11 @@ import { Target, City, Faction } from '../model/models';
 export class InfoComponent implements OnInit, OnChanges {
 
   @Input() target: Target;
-  type: 'city' | 'faction' | 'people';
 
   constructor() { }
 
-  ngOnInit(): void {
-  }
+  ngOnInit(): void {}
 
-  ngOnChanges(changes: any): void{
-    if (changes.target) {
-      this.type =
-        (this.target instanceof City) ? 'city' :
-        (this.target instanceof Faction) ? 'faction' :
-        'people';
-    }
-  }
+  ngOnChanges(changes: any): void{}
 
 }

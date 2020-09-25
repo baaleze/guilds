@@ -1,8 +1,9 @@
 import { Component, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
-import { World, TileType, Position, Target, TradeRoute } from './model/models';
+import { World, TileType, Position, Target, TradeRoute, Resource } from './model/models';
 import { DrawService } from './draw.service';
 import { Util } from './util';
 import { Observable } from 'rxjs';
+import { resources } from 'pixi.js';
 
 const WORLD_SIZE = 256;
 
@@ -18,6 +19,21 @@ export class AppComponent implements AfterViewInit {
   tasks: Worker;
   picked: Target;
   log: string[] = [];
+  resources = [
+    Resource.BREAD,
+    Resource.CHARCOAL,
+    Resource.CLOTHES,
+    Resource.COTTON,
+    Resource.GOLD,
+    Resource.GRAIN,
+    Resource.MEAT,
+    Resource.ORE,
+    Resource.STONE,
+    Resource.TOOLS,
+    Resource.WOOD
+  ];
+  resourcesString = this.resources.map(r => Resource[r]);
+  trade: Resource;
 
   constructor(public draw: DrawService) {}
 
@@ -49,8 +65,9 @@ export class AppComponent implements AfterViewInit {
       this.world = message.data;
       // generate trade routes for the first time
       this.log.push('Generating trade routes for the first time');
-      this.refreshTradeRoutes().subscribe(() => {
+      this.refreshTradeRoutes().subscribe((tr) => {
         this.log.push('Generating trade routes FINISHED');
+        this.world.tradeRoutes = tr;
         this.draw.drawMap(this.world);
       });
     }
@@ -68,7 +85,7 @@ export class AppComponent implements AfterViewInit {
           this.tasks.onmessage = undefined;
         }
       };
-      this.tasks.postMessage({task: 'computeTradeRoute', data: this.world});
+      this.tasks.postMessage({task: 'computeTradeRoute', world: this.world});
     });
   }
 
@@ -104,6 +121,10 @@ export class AppComponent implements AfterViewInit {
   }
   public showRoads(show: boolean): void {
     this.draw.showRoads = show;
+    this.draw.drawMap(this.world);
+  }
+  public showTrade(): void {
+    this.draw.showTrade = this.trade;
     this.draw.drawMap(this.world);
   }
 }

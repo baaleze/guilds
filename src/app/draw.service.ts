@@ -1,5 +1,5 @@
 import { Injectable, EventEmitter } from '@angular/core';
-import { City, TileType, World, Tile, Target, Position } from './model/models';
+import { City, TileType, World, Tile, Target, Position, Resource } from './model/models';
 import * as PIXI from 'pixi.js';
 
 const MAP_SCALE = 2;
@@ -21,6 +21,7 @@ export class DrawService {
   showNations = false;
   showCities = true;
   showRoads = true;
+  showTrade: Resource = undefined;
 
   // events
   public onClick = new EventEmitter<Position>();
@@ -38,6 +39,20 @@ export class DrawService {
     [TileType.PLAIN, [120, 230, 100]],
     [TileType.SAND, [200, 200, 0]],
     [TileType.SWAMP, [160, 140, 30]]
+  ]);
+
+  resourceColors = new Map<Resource, number[]>([
+    [Resource.BREAD, [200, 150, 20]],
+    [Resource.CHARCOAL, [30, 30, 30]],
+    [Resource.CLOTHES, [200, 30, 230]],
+    [Resource.COTTON, [255, 255, 255]],
+    [Resource.GOLD, [200, 200, 0]],
+    [Resource.GRAIN, [130, 130, 0]],
+    [Resource.MEAT, [200, 0, 0]],
+    [Resource.ORE, [100, 200, 0]],
+    [Resource.STONE, [100, 100, 100]],
+    [Resource.TOOLS, [0, 200, 30]],
+    [Resource.WOOD, [100, 10, 0]]
   ]);
 
   constructor() { }
@@ -83,6 +98,11 @@ export class DrawService {
         this.drawCities(world);
       }
 
+      // render trade routes
+      if (this.showTrade) {
+        this.drawTradeRoutes(world, this.showTrade);
+      }
+
       // draw canvas on PIXI
       const base = new PIXI.BaseTexture(this.cx.canvas);
       const tex = new PIXI.Texture(base);
@@ -94,35 +114,47 @@ export class DrawService {
   }
 
   private drawTerrain(world: World): void {
-    world.map.forEach((line, x) => line.forEach((t, y) => {
-      // draw each tile base
-      this.cx.fillStyle = this.computeColor(t);
-      this.cx.fillRect(x * MAP_SCALE, y * MAP_SCALE, MAP_SCALE, MAP_SCALE);
+    if (world.map) {
+      world.map.forEach((line, x) => line.forEach((t, y) => {
+        // draw each tile base
+        this.cx.fillStyle = this.computeColor(t);
+        this.cx.fillRect(x * MAP_SCALE, y * MAP_SCALE, MAP_SCALE, MAP_SCALE);
 
-      // overlays
-      if (this.showNations) {
-        const color = t.region.nation.color;
-        this.cx.fillStyle = `rgba(${color[0]}, ${color[1]}, ${color[2]}, 0.4)`;
-        this.cx.fillRect(x * MAP_SCALE, y * MAP_SCALE, MAP_SCALE, MAP_SCALE);
-      }
-      if (this.showRegions && t.isFrontier) {
-        const color = t.region.color;
-        this.cx.fillStyle = `rgba(${color[0]}, ${color[1]}, ${color[2]})`;
-        this.cx.fillRect(x * MAP_SCALE, y * MAP_SCALE, MAP_SCALE, MAP_SCALE);
-      }
-    }));
+        // overlays
+        if (this.showNations) {
+          const color = t.region.nation.color;
+          this.cx.fillStyle = `rgba(${color[0]}, ${color[1]}, ${color[2]}, 0.4)`;
+          this.cx.fillRect(x * MAP_SCALE, y * MAP_SCALE, MAP_SCALE, MAP_SCALE);
+        }
+        if (this.showRegions && t.isFrontier) {
+          const color = t.region.color;
+          this.cx.fillStyle = `rgba(${color[0]}, ${color[1]}, ${color[2]})`;
+          this.cx.fillRect(x * MAP_SCALE, y * MAP_SCALE, MAP_SCALE, MAP_SCALE);
+        }
+      }));
+    }
+  }
+
+  private drawTradeRoutes(world: World, res: Resource): void {
+    world.tradeRoutes.filter(tr => tr.resource === res).forEach(tr => {
+      const color = this.resourceColors.get(tr.resource);
+      this.cx.fillStyle = `rgba(${color[0]}, ${color[1]}, ${color[2]})`;
+      tr.road.path.forEach(n => this.cx.fillRect(n.x * MAP_SCALE, n.y * MAP_SCALE, MAP_SCALE, MAP_SCALE));
+    });
   }
 
   private drawCities(world: World): void {
     this.cx.fillStyle = 'black';
     if (world.cities) {
       world.cities.forEach(c => {
-        this.cx.fillRect((c.position.x - 2) * MAP_SCALE, (c.position.y - 2) * MAP_SCALE, MAP_SCALE * 4, MAP_SCALE * 4);
+        this.cx.fillRect((c.position.x - 1) * MAP_SCALE, (c.position.y - 1) * MAP_SCALE, MAP_SCALE * 2, MAP_SCALE * 2);
       });
     }
   }
+
+
   private drawUI(world: World): void {
-    if (this.showCities) {
+    if (this.showCities && world.cities) {
       world.cities.forEach(c => {
         const text = new PIXI.Text(c.name, this.textStyle);
         text.position.set((c.position.x + 2) * MAP_SCALE, c.position.y * MAP_SCALE);

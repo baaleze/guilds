@@ -1,15 +1,17 @@
 /// <reference lib="webworker" />
 
-import { World, TradeRoute } from "./model/models";
+import { World, TradeRoute } from './model/models';
 
 
 addEventListener('message', ({ data }) => {
+  console.log('GOT MESSAGE', data);
   postMessage(handleMessage(data));
 });
 
 function handleMessage(data): {type: string, msg?: string, data?: any} {
   switch (data.task) {
     case 'computeTradeRoute':
+      console.log('DATA', data);
       return computeTradeRoutes(data.world);
     default:
       return {type: 'error', msg: `Unknown task ${data.task}`};

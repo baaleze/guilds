@@ -12,6 +12,11 @@
     <input [checked]="draw.showRegions" type="checkbox" id="showRegions" (change)="showRegions($event.currentTarget.checked)">&nbsp;&nbsp;
     <label [class.disabled]="!draw.showNations">Show Nations</label>
     <input [checked]="draw.showNations" type="checkbox" id="showNations" (change)="showNations($event.currentTarget.checked)">
+    <label [class.disabled]="!draw.showNations">Show Nations</label>
+    <select id="showTrade" [(ngModel)]="trade" (change)="showTrade()">
+      <option value="" selected></option>
+      <option *ngFor="let r of resources; let i = index" [value]="r" >{{resourcesString[i]}}</option>
+    </select>
   </div>
   <div id = "map">
   </div>
