@@ -125,6 +125,10 @@ export class AppComponent implements AfterViewInit {
   }
   public showTrade(): void {
     this.draw.showTrade = this.trade;
+    if (this.trade) {
+      this.showRoads(false);
+      this.showBiomes(false);
+    }
     this.draw.drawMap(this.world);
   }
 }

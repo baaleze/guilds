@@ -1,6 +1,6 @@
 /// <reference lib="webworker" />
 
-import { World, TradeRoute } from './model/models';
+import { World, TradeRoute, Resource } from './model/models';
 
 
 addEventListener('message', ({ data }) => {
@@ -22,8 +22,10 @@ function computeTradeRoutes(world: World): {type: string, msg?: string, data: Tr
   const routes: TradeRoute[] = [];
   // for each city
   world.cities.forEach(c => {
-    // for each resource they need
-    const res = [];
+    // for each resource they need, in addition to basic needs
+    const res = [
+      Resource.BREAD, Resource.WOOD, Resource.STONE, Resource.MEAT, Resource.TOOLS
+    ];
     c.industries.forEach(i => i.needs.forEach(n => {
       if (res.indexOf(n.res) === -1) {
         res.push(n.res);

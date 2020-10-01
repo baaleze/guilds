@@ -2,7 +2,7 @@ import { Injectable, EventEmitter } from '@angular/core';
 import { City, TileType, World, Tile, Target, Position, Resource } from './model/models';
 import * as PIXI from 'pixi.js';
 
-const MAP_SCALE = 2;
+const MAP_SCALE = 3;
 
 @Injectable({
   providedIn: 'root'
@@ -100,7 +100,7 @@ export class DrawService {
 
       // render trade routes
       if (this.showTrade) {
-        this.drawTradeRoutes(world, this.showTrade);
+        this.drawTradeRoutes(world, Number(this.showTrade));
       }
 
       // draw canvas on PIXI
@@ -138,7 +138,7 @@ export class DrawService {
   private drawTradeRoutes(world: World, res: Resource): void {
     world.tradeRoutes.filter(tr => tr.resource === res).forEach(tr => {
       const color = this.resourceColors.get(tr.resource);
-      this.cx.fillStyle = `rgba(${color[0]}, ${color[1]}, ${color[2]})`;
+      this.cx.fillStyle = `rgb(${color[0]}, ${color[1]}, ${color[2]})`;
       tr.road.path.forEach(n => this.cx.fillRect(n.x * MAP_SCALE, n.y * MAP_SCALE, MAP_SCALE, MAP_SCALE));
     });
   }
