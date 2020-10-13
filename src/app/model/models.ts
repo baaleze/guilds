@@ -9,6 +9,7 @@ export class World {
     public nations: Nation[];
     public neighbours = new Map<City, City[]>();
     public tradeRoutes: TradeRoute[];
+    public day = 6;
 
     constructor() {}
 }
@@ -42,6 +43,31 @@ export enum TileType {
     RIVER = 9
 }
 
+export enum Resource {
+    WOOD = 1,
+    METAL = 2,
+    TOOLS = 3,
+    MACHINE = 4,
+    GOODS = 5,
+    FOOD = 6,
+    CATTLE = 7,
+    STONE = 8,
+    HORSE = 9,
+    COTTON = 10
+}
+export const allResources = [
+    Resource.CATTLE,
+    Resource.COTTON,
+    Resource.FOOD,
+    Resource.GOODS,
+    Resource.HORSE,
+    Resource.MACHINE,
+    Resource.METAL,
+    Resource.STONE,
+    Resource.TOOLS,
+    Resource.WOOD
+  ];
+
 export class Node {
     constructor(
       public x: number,
@@ -67,24 +93,28 @@ export class Nation {
 }
 
 export class City {
-    private trades: number[];
-    private previousWealth: number;
     public port: Position;
     public rivers: string[] = [];
     public roads: Road[] = [];
     public nation: Nation;
+    public access = 5;
+    public stability = 0;
 
     constructor(
         public resources: ResourceStock[],
         public name: string,
-        public pop: number,
-        public wealth: number,
+        public population: number,
         public industries: Industry[],
         public position: Position,
         public color: number[]
-    ) {
-        this.trades = industries.map(_ => 0);
-        this.previousWealth = wealth;
+    ) {}
+
+    /**
+     * Scale or magnitude of the city. Equal to the nearest power of 10 of the population.
+     * (1530 is 4, 23 is 2, 554984 is 6...)
+     */
+    public getMag(): number {
+        return Math.floor(Math.log10(this.population));
     }
 
     addResource(res: Resource, amount: number): void {
@@ -102,28 +132,7 @@ export class City {
     }
 
     tick(): void {
-        // from the change in wealth, change industry power
-        // the change is proportional to the trade ratio
-        this.industries.forEach((i, index) => i.power = i.power + (this.wealth - this.previousWealth) / this.trades[index]);
-
-        // change in population / food
-        // is there enough food
-        if (this.getResource(Resource.BREAD) + this.getResource(Resource.MEAT) > this.pop) {
-            // consume
-            const leftToFeed = Math.max(0, this.pop - this.getResource(Resource.MEAT));
-            this.addResource(Resource.MEAT, this.pop);
-            this.addResource(Resource.BREAD, leftToFeed);
-            // population and city grows
-            if (this.getResource(Resource.STONE) > this.pop * 0.1 &&
-                (this.getResource(Resource.MEAT) + this.getResource(Resource.BREAD)) > this.pop * 0.1 ) {
-                this.pop = Math.floor(this.pop * 1.1);
-            }
-        } else {
-            // consume everything
-            this.addResource(Resource.BREAD, this.pop);
-            this.addResource(Resource.MEAT, this.pop);
-            // TODO add famine
-        }
+        // TODO
     }
 }
 
@@ -143,108 +152,75 @@ export class TradeRoute {
     ) {}
 }
 
+export class Demand {
+    constructor(
+        public resource: Resource,
+        public mag: (size: number) => number
+    ) {}
+}
+
 export class Industry {
     constructor(
         public name: string,
-        public needs: ResourceStock[],
-        public produces: ResourceStock[],
-        public power: number
+        public needs: Demand[],
+        public produces: Demand[]
     ) {}
 
-    static Woodcutting(): Industry {
-        return new Industry(
+    static Woodcutting = new Industry(
             'Woodcutting',
-            [],
-            [new ResourceStock(Resource.WOOD, 10)],
-            0);
-    }
-    static Cotton(): Industry {
-        return new Industry(
-            'Cotton',
-            [],
-            [new ResourceStock(Resource.COTTON, 10)],
-            0);
-    }
-    static Ore(): Industry {
-        return new Industry(
-            'Ore',
-            [],
-            [new ResourceStock(Resource.ORE, 8)],
-            0);
-    }
-    static Coal(): Industry {
-        return new Industry(
-            'Coal',
-            [],
-            [new ResourceStock(Resource.CHARCOAL, 6)],
-            0);
-    }
-    static Stone(): Industry {
-        return new Industry(
+            [new Demand(Resource.TOOLS, s => Math.max(0, s - 1))],
+            [new Demand(Resource.WOOD, s => s + 1)]);
+    static Metal = new Industry(
+            'Metal',
+            [new Demand(Resource.TOOLS, s => s)],
+            [new Demand(Resource.METAL, s => s)]);
+    static Stone = new Industry(
             'Stone',
-            [],
-            [new ResourceStock(Resource.STONE, 10)],
-            0);
-    }
-    static Gold(): Industry {
-        return new Industry(
-            'Gold',
-            [new ResourceStock(Resource.TOOLS, 1)],
-            [new ResourceStock(Resource.GOLD, 6)],
-            0);
-    }
-    static Grain(): Industry {
-        return new Industry(
-            'Grain',
-            [],
-            [new ResourceStock(Resource.GRAIN, 10)],
-            0);
-    }
-    static Meat(): Industry {
-        return new Industry(
-            'Meat',
-            [new ResourceStock(Resource.GRAIN, 10)],
-            [new ResourceStock(Resource.MEAT, 5)],
-            0);
-    }
-    static Fishing(): Industry {
-        return new Industry(
-            'Fishing',
-            [],
-            [new ResourceStock(Resource.MEAT, 4)],
-            0);
-    }
-    static Woodburning(): Industry {
-        return new Industry(
-            'Woodburning',
-            [new ResourceStock(Resource.WOOD, 5)],
-            [new ResourceStock(Resource.CHARCOAL, 4)],
-            0);
-    }
-    static Clothesmaking(): Industry {
-        return new Industry(
-            'Clothesmaking',
-            [new ResourceStock(Resource.COTTON, 6)],
-            [new ResourceStock(Resource.CLOTHES, 1)],
-            0
+            [new Demand(Resource.TOOLS, s => s)],
+            [new Demand(Resource.STONE, s => s + 1)]);
+    static Farm = new Industry(
+            'Farm',
+            [
+                new Demand(Resource.MACHINE, s => Math.max(0, s - 1)),
+                new Demand(Resource.CATTLE, s => Math.max(0, s - 2))
+            ],
+            [new Demand(Resource.FOOD, s => s + 2)]);
+    static Cotton = new Industry(
+            'Cotton',
+            [new Demand(Resource.TOOLS, s => Math.max(0, s - 1))],
+            [new Demand(Resource.COTTON, s => s + 1)]);
+    static Cattle = new Industry(
+            'Cattle',
+            [new Demand(Resource.FOOD, s => Math.max(0, s - 1))],
+            [new Demand(Resource.CATTLE, s => s)]
         );
-    }
-    static Blacksmith(): Industry {
-        return new Industry(
+    static Horse = new Industry(
+            'Horse',
+            [new Demand(Resource.FOOD, s => s)],
+            [new Demand(Resource.HORSE, s => s)]);
+    static Goods = new Industry(
+            'Goods',
+            [
+                new Demand(Resource.COTTON, s => s),
+                new Demand(Resource.MACHINE, s => Math.max(0, s - 1))
+            ],
+            [new Demand(Resource.GOODS, s => s + 1)]);
+    static Blacksmith = new Industry(
             'Blacksmith',
-            [new ResourceStock(Resource.ORE, 6), new ResourceStock(Resource.CHARCOAL, 6)],
-            [new ResourceStock(Resource.TOOLS, 1)],
-            0
+            [
+                new Demand(Resource.MACHINE, s => Math.max(0, s - 1)),
+                new Demand(Resource.METAL, s => s)
+            ],
+            [new Demand(Resource.TOOLS, s => s)]
         );
-    }
-    static Bakery(): Industry {
-        return new Industry(
-            'Bakery',
-            [new ResourceStock(Resource.GRAIN, 6)],
-            [new ResourceStock(Resource.BREAD, 1)],
-            0
+    static Machinery = new Industry(
+            'Machinery',
+            [
+                new Demand(Resource.TOOLS, s => Math.max(0, s - 1)),
+                new Demand(Resource.WOOD, s => 2 * s)
+            ],
+            [new Demand(Resource.MACHINE, s => s)]
         );
-    }
 }
 
 export class ResourceStock {
@@ -255,19 +231,6 @@ export class ResourceStock {
     ) {}
 }
 
-export enum Resource {
-    WOOD = 1,
-    ORE = 2,
-    TOOLS = 3,
-    COTTON = 4,
-    CLOTHES = 5,
-    GRAIN = 6,
-    CHARCOAL = 7,
-    STONE = 8,
-    GOLD = 9,
-    BREAD = 10,
-    MEAT = 11
-}
 
 export class TravellingGroup {
     constructor(

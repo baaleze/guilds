@@ -1,5 +1,5 @@
 import { Component, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
-import { World, TileType, Position, Target, TradeRoute, Resource } from './model/models';
+import { World, TileType, Position, Target, TradeRoute, Resource, allResources } from './model/models';
 import { DrawService } from './draw.service';
 import { Util } from './util';
 import { Observable } from 'rxjs';
@@ -19,20 +19,7 @@ export class AppComponent implements AfterViewInit {
   tasks: Worker;
   picked: Target;
   log: string[] = [];
-  resources = [
-    Resource.BREAD,
-    Resource.CHARCOAL,
-    Resource.CLOTHES,
-    Resource.COTTON,
-    Resource.GOLD,
-    Resource.GRAIN,
-    Resource.MEAT,
-    Resource.ORE,
-    Resource.STONE,
-    Resource.TOOLS,
-    Resource.WOOD
-  ];
-  resourcesString = this.resources.map(r => Resource[r]);
+  resourcesString = allResources.map(r => Resource[r]);
   trade: Resource;
 
   constructor(public draw: DrawService) {}

@@ -41,9 +41,9 @@ addEventListener('message', ({ data }) => {
   }
 
   // terrain
-  const nbRivers = Math.floor(data.worldSize / 10);
-  const nbCities = Math.floor(data.worldSize / 15);
-  generateTerrain(world, data.seaLevel, data.mountainLevel, data.worldSize, nbRivers)
+  const nbRivers = Math.floor(data.worldSize / 15);
+  const nbCities = Math.floor(data.worldSize / 12);
+  generateTerrain(world, data.seaLevel, data.mountainLevel, data.worldSize, nbRivers);
 
   // cities
   spawnCities(nbCities, world);
@@ -118,12 +118,14 @@ function buildRoadsRecursive(map: Tile[][], cities: City[], seaRoute: boolean): 
           if (path) {
             path.forEach(p => map[p.x][p.y].isSeaRoad = true);
             city.roads.push(new Road(city, c, path, path[path.length - 1].g));
+            c.roads.push(new Road(c, city, path.reverse(), path[path.length - 1].g));
           }
         } else {
           const path = findPath(map, city.position, c.position, seaRoute);
           if (path) {
             path.forEach(p => map[p.x][p.y].isRoad = true);
             city.roads.push(new Road(city, c, path, path[path.length - 1].g));
+            c.roads.push(new Road(c, city, path.reverse(), path[path.length - 1].g));
           }
         }
       }
@@ -154,17 +156,11 @@ function spawnCities(nbCities: number, world: World): void {
 function createCityFromSpot(map: Tile[][], pos: Position, name: string): City {
   // generate industries from what's available
   const scan = scanAround(map, pos.x, pos.y, 5);
-  const industries = generateIndustries(scan.biomes);
-  const wealth = Util.randomIntBetween(1, 10) * 30;
-  // split wealth into the industries
-  industries.forEach(i => i.power = Math.floor(wealth / industries.length));
+
   // population is what is needed plus a little more
-  const pop = wealth * 11;
-  const c = new City([], name, pop, wealth, industries, pos, Util.randomInArray(cityColors));
-  // start with enough resources for 3 ticks of production
-  // and production from 2 ticks
-  industries.forEach(i => i.needs.forEach(n => c.addResource(n.res, n.amount * i.power * 3)));
-  industries.forEach(i => i.produces.forEach(n => c.addResource(n.res, n.amount * i.power * 2)));
+  const pop = Util.randomIntBetween(500, 10000);
+  const industries = generateIndustries(scan.biomes, Math.floor(Math.log10(pop)));
+  const c = new City([], name, pop, industries, pos, Util.randomInArray(cityColors));
 
   // add port if sea is close
   c.port = Util.getClosestTileOfType(map, pos.x, pos.y, TileType.SEA, 3);
@@ -209,7 +205,7 @@ function buildRegions(world: World): void {
   }
   submitProgress('Associationg Nations with regions', world);
   // now choose nations for each
-  const cityQueue = new PriorityQueue<City>((a, b) => a.wealth > b.wealth);
+  const cityQueue = new PriorityQueue<City>((a, b) => a.population > b.population);
   world.nations.forEach(nation => {
     const city = Util.randomInArray(world.cities.filter(c => c.nation === undefined));
     if (city) {
@@ -261,55 +257,36 @@ function nameRiver(riverId: string, lang: LanguageGenerator, map: Tile[][]): str
   }
 }
 
-function generateIndustries(biomes: TileType[]): Industry[] {
-  const ind: Industry[] = [];
+function generateIndustries(biomes: TileType[], nbIndustry: number): Industry[] {
+  let availableIndustries: Industry[] = [];
   biomes.forEach(b => {
     switch (b) {
       case TileType.FOREST:
-        ind.push(Industry.Woodcutting());
+        availableIndustries.push(Industry.Woodcutting);
         break;
       case TileType.MOUNTAIN:
-        // random mining
-        if (Math.random() < 0.3) {
-          ind.push(Industry.Stone());
-        }
-        if (Math.random() < 0.3) {
-          ind.push(Industry.Ore());
-        }
-        if (Math.random() < 0.3) {
-          ind.push(Industry.Gold());
-        }
-        if (Math.random() < 0.3) {
-          ind.push(Industry.Coal());
-        }
+        availableIndustries.push(Industry.Stone);
+        availableIndustries.push(Industry.Metal);
         break;
       case TileType.PLAIN:
-        if (Math.random() < 0.6) {
-          ind.push(Industry.Grain());
-        } else {
-          ind.push(Industry.Meat());
-        }
-        break;
-      case TileType.SAND:
-        ind.push(Industry.Cotton());
-        break;
-      case TileType.SEA:
-        ind.push(Industry.Fishing());
+        availableIndustries.push(Industry.Farm);
+        availableIndustries.push(Industry.Cattle);
+        availableIndustries.push(Industry.Horse);
+        availableIndustries.push(Industry.Cotton);
         break;
     }
   });
-  if (Math.random() < 0.3) {
-    ind.push(Industry.Blacksmith());
+  availableIndustries.push(Industry.Blacksmith);
+  availableIndustries.push(Industry.Goods);
+
+  // get random industries from the available list
+  const ind = [];
+  while (ind.length < nbIndustry && availableIndustries.length > 0) {
+    const random = Util.randomInArray(availableIndustries);
+    availableIndustries = availableIndustries.filter(i => i !== random);
+    ind.push(random);
   }
-  if (Math.random() < 0.3) {
-    ind.push(Industry.Woodburning());
-  }
-  if (Math.random() < 0.3) {
-    ind.push(Industry.Clothesmaking());
-  }
-  if (Math.random() < 0.3) {
-    ind.push(Industry.Bakery());
-  }
+
   return ind;
 }
 
