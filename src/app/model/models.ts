@@ -99,41 +99,20 @@ export class City {
     public nation: Nation;
     public access = 5;
     public stability = 0;
+    public growth = 0;
+    public production = new Map<Resource, number>();
+    public resources = new Map<Resource, number>();
+    public deficits = new Map<Resource, number>();
+    public needs = new Map<Resource, number>();
 
     constructor(
-        public resources: ResourceStock[],
         public name: string,
         public population: number,
-        public industries: Industry[],
+        public industries: IndustryName[],
         public position: Position,
         public color: number[]
     ) {}
 
-    /**
-     * Scale or magnitude of the city. Equal to the nearest power of 10 of the population.
-     * (1530 is 4, 23 is 2, 554984 is 6...)
-     */
-    public getMag(): number {
-        return Math.floor(Math.log10(this.population));
-    }
-
-    addResource(res: Resource, amount: number): void {
-        const stock = this.resources.find(s => s.res === res);
-        if (stock) {
-            stock.amount = Math.max(0, stock.amount + amount);
-        } else {
-            this.resources.push(new ResourceStock(res, amount));
-        }
-    }
-
-    getResource(res: Resource): number {
-        const stock = this.resources.find(s => s.res === res);
-        return stock ? stock.amount : 0;
-    }
-
-    tick(): void {
-        // TODO
-    }
 }
 
 export class Road {
@@ -159,6 +138,9 @@ export class Demand {
     ) {}
 }
 
+export type IndustryName = 'Woodcutting' | 'Metal' | 'Stone' | 'Farm' | 'Cotton' | 'Cattle' | 'Horse' |
+    'Blacksmith' | 'Machinery' | 'Goods';
+
 export class Industry {
     constructor(
         public name: string,
@@ -166,61 +148,64 @@ export class Industry {
         public produces: Demand[]
     ) {}
 
-    static Woodcutting = new Industry(
+    static industries = new Map<IndustryName, Industry>([
+        ['Woodcutting', new Industry(
             'Woodcutting',
             [new Demand(Resource.TOOLS, s => Math.max(0, s - 1))],
-            [new Demand(Resource.WOOD, s => s + 1)]);
-    static Metal = new Industry(
+            [new Demand(Resource.WOOD, s => s + 1)])],
+        ['Metal', new Industry(
             'Metal',
             [new Demand(Resource.TOOLS, s => s)],
-            [new Demand(Resource.METAL, s => s)]);
-    static Stone = new Industry(
+            [new Demand(Resource.METAL, s => s)])],
+        ['Stone', new Industry(
             'Stone',
-            [new Demand(Resource.TOOLS, s => s)],
-            [new Demand(Resource.STONE, s => s + 1)]);
-    static Farm = new Industry(
+            [new Demand(Resource.TOOLS, s => Math.max(0, s - 1))],
+            [new Demand(Resource.STONE, s => s)])],
+        ['Farm', new Industry(
             'Farm',
             [
                 new Demand(Resource.MACHINE, s => Math.max(0, s - 1)),
-                new Demand(Resource.CATTLE, s => Math.max(0, s - 2))
+                new Demand(Resource.CATTLE, s => Math.max(0, s - 1))
             ],
-            [new Demand(Resource.FOOD, s => s + 2)]);
-    static Cotton = new Industry(
+            [new Demand(Resource.FOOD, s => s + 1)]
+        )],
+        ['Cotton', new Industry(
             'Cotton',
             [new Demand(Resource.TOOLS, s => Math.max(0, s - 1))],
-            [new Demand(Resource.COTTON, s => s + 1)]);
-    static Cattle = new Industry(
+            [new Demand(Resource.COTTON, s => s + 1)])],
+            ['Cattle', new Industry(
             'Cattle',
             [new Demand(Resource.FOOD, s => Math.max(0, s - 1))],
             [new Demand(Resource.CATTLE, s => s)]
-        );
-    static Horse = new Industry(
+        )],
+        ['Horse', new Industry(
             'Horse',
             [new Demand(Resource.FOOD, s => s)],
-            [new Demand(Resource.HORSE, s => s)]);
-    static Goods = new Industry(
+            [new Demand(Resource.HORSE, s => s)])],
+        ['Goods', new Industry(
             'Goods',
             [
                 new Demand(Resource.COTTON, s => s),
                 new Demand(Resource.MACHINE, s => Math.max(0, s - 1))
             ],
-            [new Demand(Resource.GOODS, s => s + 1)]);
-    static Blacksmith = new Industry(
+            [new Demand(Resource.GOODS, s => s + 1)])],
+        ['Blacksmith', new Industry(
             'Blacksmith',
             [
                 new Demand(Resource.MACHINE, s => Math.max(0, s - 1)),
                 new Demand(Resource.METAL, s => s)
             ],
-            [new Demand(Resource.TOOLS, s => s)]
-        );
-    static Machinery = new Industry(
+            [new Demand(Resource.TOOLS, s => s + 1)]
+        )],
+        ['Machinery', new Industry(
             'Machinery',
             [
                 new Demand(Resource.TOOLS, s => Math.max(0, s - 1)),
-                new Demand(Resource.WOOD, s => 2 * s)
+                new Demand(Resource.WOOD, s => s + 1)
             ],
             [new Demand(Resource.MACHINE, s => s)]
-        );
+        )]
+    ]);
 }
 
 export class ResourceStock {
@@ -233,10 +218,10 @@ export class ResourceStock {
 
 
 export class TravellingGroup {
+    public resources = new Map<Resource, number>();
     constructor(
         public name: string,
         public members: People[],
-        public resources: ResourceStock[],
         public mission: Mission,
         public position: Position
     ) {}

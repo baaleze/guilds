@@ -4,7 +4,7 @@ import { Util } from 'src/app/util';
 const allConsonants = 'bbccccdddfffghhjkllllllmmmmnnnnnpppqrrrrrrsssssstttttvwwxz'.split('');
 const diacConsonants = 'čçšž'.split('');
 // const allVowels = 'aeiouyàéèâêôîûëäïöüòìùỳŷÿãåøæœ'.split('');
-const allVowels = 'aeiouy'.split('');
+const allVowels = 'aaaeeeiiooouy'.split('');
 const diacVowels = 'àéèâêôîûëäïöüòìùỳŷÿãåøæœ'.split('');
 const syllabePatterns = [
     'v', 'cv', 'cvc', 'cvc', 'cvc', 'ccv', 'ckv', 'vv'
@@ -13,7 +13,7 @@ const wordPatterns = [
     'w', 'w w', 'w w w', 'w w', 'w', 'w-w', 'w-w', 'w w', 'w\'w', 'w\'w', 'w-w', 'w\'w', 'w-w-w', 'ww', 'ww\'w'
 ];
 const NUM_MAX_DIAC_VOWELS = 5;
-const NUM_COMMON_SYLLABE = 30;
+const NUM_COMMON_SYLLABE = 15;
 const NUM_WORD_PATTERNS = 3;
 const NUM_WORD_BASE = 100;
 
@@ -35,7 +35,7 @@ export class LanguageGenerator {
 
     chooseLettersProbas(): void {
         let con = allConsonants.map(c => c);
-        let vow = allVowels.map(c => c);
+        const vow = allVowels.map(c => c);
         // do we use special consonants ?
         if (Math.random() < 0.1) {
             con = con.concat(diacConsonants);
@@ -47,13 +47,13 @@ export class LanguageGenerator {
         }
 
         // only use 80% of consonents
-        for (let n = 0; n < allConsonants.length - 1; n++) {
+        for (let n = 0; n < allConsonants.length - 6; n++) {
             const c = Util.randomInArray(con);
             con.splice(con.indexOf(c), 1);
             this.consonantProbas.set(c, n * 3);
         }
         // only use 50% of vowels
-        for (let n = 0; n < allVowels.length - 1; n++) {
+        for (let n = 0; n < allVowels.length - 2; n++) {
             const v = Util.randomInArray(vow);
             vow.splice(vow.indexOf(v), 1);
             this.vowelProbas.set(v, n * 3);

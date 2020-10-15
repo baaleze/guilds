@@ -13,17 +13,13 @@
     <label [class.disabled]="!draw.showNations">Show Nations</label>
     <input [checked]="draw.showNations" type="checkbox" id="showNations" (change)="showNations($event.currentTarget.checked)">&nbsp;&nbsp;
     <label [class.disabled]="!draw.showNations">Show Trade routes</label>
-    <select id="showTrade" [(ngModel)]="trade" (change)="showTrade()">
-      <option value="" selected></option>
-      <option *ngFor="let r of resources; let i = index" [value]="r" >{{resourcesString[i]}}</option>
-    </select>
   </div>
   <div id = "map">
   </div>
-  <div *ngIf="log.length > 0" id="info-panel">
+  <div *ngIf="log.length > 0" id="log-panel">
     <div *ngFor="let l of log">{{l}}</div>
   </div>
-  <div *ngIf="picked" id="info-panel">
-    <app-info [target]="picked"></app-info>
+  <div *ngIf="world && world.cities" id="info-panel">
+    <app-info *ngFor="let c of world.cities" [city]="c"></app-info>
   </div>
 </div>

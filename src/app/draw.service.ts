@@ -42,14 +42,13 @@ export class DrawService {
   ]);
 
   resourceColors = new Map<Resource, number[]>([
-    [Resource.BREAD, [200, 150, 20]],
-    [Resource.CHARCOAL, [30, 30, 30]],
-    [Resource.CLOTHES, [200, 30, 230]],
+    [Resource.CATTLE, [200, 150, 20]],
+    [Resource.METAL, [30, 30, 30]],
+    [Resource.MACHINE, [200, 30, 230]],
     [Resource.COTTON, [255, 255, 255]],
-    [Resource.GOLD, [200, 200, 0]],
-    [Resource.GRAIN, [130, 130, 0]],
-    [Resource.MEAT, [200, 0, 0]],
-    [Resource.ORE, [100, 200, 0]],
+    [Resource.GOODS, [200, 200, 0]],
+    [Resource.FOOD, [130, 130, 0]],
+    [Resource.HORSE, [200, 0, 0]],
     [Resource.STONE, [100, 100, 100]],
     [Resource.TOOLS, [0, 200, 30]],
     [Resource.WOOD, [100, 10, 0]]

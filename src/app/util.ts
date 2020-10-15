@@ -6,7 +6,7 @@ export class Util {
   }
 
   static randomIntBetween(min: number, max: number): number {
-    return Math.floor(Math.random() * (max - min)) + min;
+    return Math.floor(Math.random() * (max - min + 1)) + min;
   }
 
   static dist(x1: number, y1: number, x2: number, y2: number): number {
@@ -44,5 +44,33 @@ export class Util {
       }
     }
     return pos;
+  }
+
+  static scanAround(map: Tile[][], x: number, y: number, radius: number): {rivers: string[], biomes: TileType[]} {
+    const biomes: TileType[] = [];
+    const rivers: string[] = [];
+    for (let i = x - radius; i < x + radius; i++) {
+      for (let j = y - radius; j < y + radius; j++) {
+        if ((i >= 0 && i < map.length && j >= 0 && j < map[x].length)) { // bounds
+          // get tile
+          const tile = map[i][j];
+          if (biomes.indexOf(tile.type) === -1) {
+            biomes.push(tile.type);
+          }
+          if (rivers.indexOf(tile.riverName) === -1 && tile.riverName) {
+            rivers.push(tile.riverName);
+          }
+        }
+      }
+    }
+    return { rivers, biomes };
+  }
+
+  /**
+     * Scale or magnitude of the city. Equal to the nearest power of 10 of the population.
+     * (1530 is 4, 23 is 2, 554984 is 6...)
+     */
+  static getMag(amount: number): number {
+    return Math.floor(Math.log10(amount));
   }
 }

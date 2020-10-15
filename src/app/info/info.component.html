@@ -1,46 +1,52 @@
-<div *ngIf="target" class="info-box">
-    <h3 *ngIf="target.nation">{{target.name}} of Nation {{target.nation.name}} [{{target.position.x}},{{target.position.y}}]  Population: {{target.pop}}  Wealth: {{target.wealth}}
-        <span *ngIf="target.port">Has a port [{{target.port.x}},{{target.port.y}}]</span>
+<div *ngIf="city" class="info-box">
+    <h3 *ngIf="city.nation">{{city.name}} of Nation {{city.nation.name}} [{{city.position.x}},{{city.position.y}}]
+        <span *ngIf="city.port">Has a port [{{city.port.x}},{{city.port.y}}]</span>
+        Population {{city.population}} [{{getMag()}}] (growth = {{city.growth * 10}}%) | Access {{city.access}} | Stability {{city.stability}} |
     </h3>
-    <div *ngIf="target.industries">
-        <div class="half-info">Industries:<br>
-            <ul><li *ngFor="let i of target.industries">
-                {{i.name}} / {{i.power}}
-            </li></ul>
+    <div *ngIf="city.industries">
+        <div >Industries:<br>
+            <table>
+                <tr>
+                    <td *ngFor="let i of city.industries">
+                        {{getIndustry(i).name}}
+                    </td>
+                </tr>
+            </table>
         </div>
-        <div class="half-info">
+        <div >
             Resources:<br>
-            <app-stock [resources]="target.resources"></app-stock>
+            <table>
+                <tr >
+                    <th>Resource</th>
+                    <th *ngFor="let r of res">
+                        {{getResourceName(r)}}
+                    </th>
+                </tr>
+                <tr >
+                    <th>Stock</th>
+                    <td *ngFor="let r of res">
+                        {{city.resources.get(r)}}
+                    </td>
+                </tr>
+                <tr >
+                    <th>Production</th>
+                    <td *ngFor="let r of res">
+                        {{city.production.get(r)}}
+                    </td>
+                </tr>
+                <tr >
+                    <th>Demand</th>
+                    <td *ngFor="let r of res">
+                        {{city.needs.get(r)}}
+                    </td>
+                </tr>
+                <tr >
+                    <th>Provided</th>
+                    <td *ngFor="let r of res" [class.danger]="city.deficits.get(r) > 0">
+                        <span *ngIf="city.needs.get(r) !== undefined">{{city.needs.get(r) - city.deficits.get(r)}}</span>
+                    </td>
+                </tr>
+            </table>
         </div>
-        <div  class="half-info">Direct roads:<br>
-            <ul><li *ngFor="let r of target.roads">
-                To {{r.to.name}} (length: {{r.path.length}}, cost: {{r.cost}})
-            </li></ul>
-        </div>
-        <div  class="half-info">Rivers:<br>
-            <ul><li *ngFor="let r of target.rivers">
-                {{r}}
-            </li></ul>
-        </div>
-    </div>
-    <div *ngIf="target.members">
-        <p>Members: {{target.members}}</p>
-        <p>Wealth: {{target.wealth}}</p>
-        Reputation:<br>
-        <ul><li *ngFor="let r of target.reputation | keyvalue">
-            {{r.key.name}} : {{r.value}}
-        </li></ul>
-        <p>[{{target.position.x}},{{target.position.y}}]</p>
-    </div>
-    <div *ngIf="target.nbPeople">
-        <p>Trade: {{target.trade}}</p>
-        <p>Guard: {{target.guard}}</p>
-        <p>Stealth: {{target.stealth}}</p>
-        <p *ngIf="target.nbPeople > 1">Size: {{target.nbPeople}}</p>
-        Reputation:<br>
-        <ul><li *ngFor="let r of target.reputation | keyvalue">
-            {{r.key.name}} : {{r.value}}
-        </li></ul>
-        <p>[{{target.position.x}},{{target.position.y}}]</p>
     </div>
 </div>

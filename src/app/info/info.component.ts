@@ -1,5 +1,6 @@
 import { Component, OnInit, Input, OnChanges } from '@angular/core';
-import { Target, City, Faction } from '../model/models';
+import { Target, IndustryName, Industry, City, Resource, allResources } from '../model/models';
+import { Util } from '../util';
 
 @Component({
   selector: 'app-info',
@@ -8,12 +9,25 @@ import { Target, City, Faction } from '../model/models';
 })
 export class InfoComponent implements OnInit, OnChanges {
 
-  @Input() target: Target;
+  @Input() city: City;
+  res = allResources;
 
   constructor() { }
 
   ngOnInit(): void {}
 
   ngOnChanges(changes: any): void{}
+
+  getIndustry(name: IndustryName): Industry {
+    return Industry.industries.get(name);
+  }
+
+  getResourceName(r: Resource): string {
+    return Resource[r];
+  }
+
+  getMag(): number {
+    return Util.getMag(this.city.population);
+  }
 
 }

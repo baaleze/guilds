@@ -4,6 +4,10 @@ html {
     font-family: 'Yanone Kaffeesatz', sans-serif;
 }
 
+.danger {
+    color: red;
+}
+
 #map {
     display: inline-block;
     position: relative;
@@ -13,7 +17,14 @@ html {
         left: 5px;
     }
 }
-
+#log-panel {
+    position: absolute;
+    left: 5px;
+    bottom: 5px;
+    width: calc(100% - 1040px);
+    height: 150px;
+    overflow: scroll;
+}
 #info-panel {
     position: absolute;
     right: 5px;
@@ -21,6 +32,17 @@ html {
     width: calc(100% - 1040px);
     height: calc(100% - 5px);
     overflow: scroll;
+
+    table {
+        border-collapse: collapse;
+      }
+      
+      table, th, td {
+        border: 1px solid grey;
+      }
+      th {
+          background-color: #bbb;
+      }
 
     .info-box {
         padding: 2px;

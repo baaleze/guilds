@@ -1,6 +1,6 @@
 /// <reference lib="webworker" />
 
-import { Tile, Position, World, City, Road, TileType, Nation, Industry, Node } from './model/models';
+import { Tile, Position, World, City, Road, TileType, Nation, Industry, Node, IndustryName } from './model/models';
 import HeightMap from './generation/mapdisplacement';
 import { Util } from './util';
 import { PriorityQueue } from './generation/priorityqueue';
@@ -111,7 +111,7 @@ function buildRoadsRecursive(map: Tile[][], cities: City[], seaRoute: boolean): 
   const citiesLeft = cities.slice(1);
   if (citiesLeft.length > 0) {
     citiesLeft.forEach(c => {
-      if (Util.dist(city.position.x, city.position.y, c.position.x, c.position.y) < 150) {
+      if (Util.dist(city.position.x, city.position.y, c.position.x, c.position.y) < 100) {
         // is sea route, start and end point must be on sea
         if (seaRoute) {
           const path = findPath(map, city.port, c.port, seaRoute);
@@ -155,12 +155,14 @@ function spawnCities(nbCities: number, world: World): void {
 
 function createCityFromSpot(map: Tile[][], pos: Position, name: string): City {
   // generate industries from what's available
-  const scan = scanAround(map, pos.x, pos.y, 5);
+  const scan = Util.scanAround(map, pos.x, pos.y, 5);
 
   // population is what is needed plus a little more
-  const pop = Util.randomIntBetween(500, 10000);
+  const mag = Util.randomIntBetween(2, 5);
+  let pop = Math.pow(10, mag);
+  pop = pop + pop * Math.random();
   const industries = generateIndustries(scan.biomes, Math.floor(Math.log10(pop)));
-  const c = new City([], name, pop, industries, pos, Util.randomInArray(cityColors));
+  const c = new City(name, pop, industries, pos, Util.randomInArray(cityColors));
 
   // add port if sea is close
   c.port = Util.getClosestTileOfType(map, pos.x, pos.y, TileType.SEA, 3);
@@ -257,30 +259,31 @@ function nameRiver(riverId: string, lang: LanguageGenerator, map: Tile[][]): str
   }
 }
 
-function generateIndustries(biomes: TileType[], nbIndustry: number): Industry[] {
-  let availableIndustries: Industry[] = [];
+function generateIndustries(biomes: TileType[], nbIndustry: number): IndustryName[] {
+  let availableIndustries: IndustryName[] = [];
   biomes.forEach(b => {
     switch (b) {
       case TileType.FOREST:
-        availableIndustries.push(Industry.Woodcutting);
+        availableIndustries.push('Woodcutting');
         break;
       case TileType.MOUNTAIN:
-        availableIndustries.push(Industry.Stone);
-        availableIndustries.push(Industry.Metal);
+        availableIndustries.push('Stone');
+        availableIndustries.push('Metal');
         break;
       case TileType.PLAIN:
-        availableIndustries.push(Industry.Farm);
-        availableIndustries.push(Industry.Cattle);
-        availableIndustries.push(Industry.Horse);
-        availableIndustries.push(Industry.Cotton);
+        availableIndustries.push('Farm');
+        availableIndustries.push('Cattle');
+        availableIndustries.push('Horse');
+        availableIndustries.push('Cotton');
         break;
     }
   });
-  availableIndustries.push(Industry.Blacksmith);
-  availableIndustries.push(Industry.Goods);
+  availableIndustries.push('Blacksmith');
+  availableIndustries.push('Machinery');
+  availableIndustries.push('Goods');
 
   // get random industries from the available list
-  const ind = [];
+  const ind: IndustryName[] = [];
   while (ind.length < nbIndustry && availableIndustries.length > 0) {
     const random = Util.randomInArray(availableIndustries);
     availableIndustries = availableIndustries.filter(i => i !== random);
@@ -319,30 +322,10 @@ function computeCityScore(map: Tile[][], x: number, y: number, cities: City[]): 
     }
   });
   // get water flux in here
-  const scan = scanAround(map, x, y, CITY_SCORE_RADIUS);
+  const scan = Util.scanAround(map, x, y, CITY_SCORE_RADIUS);
   // different biomes around
   // combine
   return minDist * 2 + scan.rivers.length * 10 + scan.biomes.length * 10;
-}
-
-function scanAround(map: Tile[][], x: number, y: number, radius: number): {rivers: string[], biomes: TileType[]} {
-  const biomes: TileType[] = [];
-  const rivers: string[] = [];
-  for (let i = x - radius; i < x + radius; i++) {
-    for (let j = y - radius; j < y + radius; j++) {
-      if ((i >= 0 && i < map.length && j >= 0 && j < map[x].length)) { // bounds
-        // get tile
-        const tile = map[i][j];
-        if (biomes.indexOf(tile.type) === -1) {
-          biomes.push(tile.type);
-        }
-        if (rivers.indexOf(tile.riverName) === -1 && tile.riverName) {
-          rivers.push(tile.riverName);
-        }
-      }
-    }
-  }
-  return { rivers, biomes };
 }
 
 function getTileType(h: number, seaLevel: number, mountainLevel: number, temp: number[][], humid: number[][], x: number, y: number): TileType {
@@ -386,14 +369,6 @@ function makeRiver(map: Tile[][], mountainLevelTiles: Tile[], name: string): voi
     }
     current = next;
     finished = current.type === TileType.SEA;
-  }
-}
-
-function transformProtolake(map: Tile[][], tile: Tile, level = 0): void {
-  tile.type = TileType.RIVER;
-  const neigh = getNeighbors(map, tile.position).filter(n => n.wasHole && n.type !== TileType.RIVER);
-  if (neigh.length > 0) {
-    neigh.forEach(n => transformProtolake(map, n, level + 1));
   }
 }
 

@@ -1,5 +1,5 @@
 import { Component, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
-import { World, TileType, Position, Target, TradeRoute, Resource, allResources } from './model/models';
+import { World, TileType, Position, Target, TradeRoute, Resource, allResources, City } from './model/models';
 import { DrawService } from './draw.service';
 import { Util } from './util';
 import { Observable } from 'rxjs';
@@ -17,10 +17,9 @@ export class AppComponent implements AfterViewInit {
   world: World;
   worldgen: Worker;
   tasks: Worker;
-  picked: Target;
+  picked: City;
   log: string[] = [];
   resourcesString = allResources.map(r => Resource[r]);
-  trade: Resource;
 
   constructor(public draw: DrawService) {}
 
@@ -52,9 +51,7 @@ export class AppComponent implements AfterViewInit {
       this.world = message.data;
       // generate trade routes for the first time
       this.log.push('Generating trade routes for the first time');
-      this.refreshTradeRoutes().subscribe((tr) => {
-        this.log.push('Generating trade routes FINISHED');
-        this.world.tradeRoutes = tr;
+      this.tick().subscribe(() => {
         this.draw.drawMap(this.world);
       });
     }
@@ -63,16 +60,17 @@ export class AppComponent implements AfterViewInit {
     }
   }
 
-  refreshTradeRoutes(): Observable<TradeRoute[]> {
+  tick(): Observable<void> {
     return new Observable(obs => {
       this.tasks.onmessage = ({ data: message }) => {
-        if (message.type === 'computeTradeRouteEnd') {
-          obs.next(message.data);
+        if (message.type === 'tickEnd') {
+          this.world = message.data;
+          obs.next();
           obs.complete();
           this.tasks.onmessage = undefined;
         }
       };
-      this.tasks.postMessage({task: 'computeTradeRoute', world: this.world});
+      this.tasks.postMessage({task: 'tick', world: this.world});
     });
   }
 
@@ -108,14 +106,6 @@ export class AppComponent implements AfterViewInit {
   }
   public showRoads(show: boolean): void {
     this.draw.showRoads = show;
-    this.draw.drawMap(this.world);
-  }
-  public showTrade(): void {
-    this.draw.showTrade = this.trade;
-    if (this.trade) {
-      this.showRoads(false);
-      this.showBiomes(false);
-    }
     this.draw.drawMap(this.world);
   }
 }
