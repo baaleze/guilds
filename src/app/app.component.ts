@@ -1,11 +1,11 @@
-import { Component, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
-import { World, TileType, Position, Target, TradeRoute, Resource, allResources, City } from './model/models';
-import { DrawService } from './draw.service';
+import { Component, AfterViewInit } from '@angular/core';
+import { World, TileType, Position,Resource, allResources, City } from './model/models';
+import { DrawService } from './draw/draw.service';
 import { Util } from './util';
 import { Observable } from 'rxjs';
-import { resources } from 'pixi.js';
 
-const WORLD_SIZE = 256;
+const WORLD_SIZE = 64;
+const SEA_LEVEL = 90;
 
 @Component({
   selector: 'app-root',
@@ -18,45 +18,43 @@ export class AppComponent implements AfterViewInit {
   worldgen: Worker;
   tasks: Worker;
   picked: City;
-  log: string[] = [];
+  progress: { status: string, num: number};
   resourcesString = allResources.map(r => Resource[r]);
 
   constructor(public draw: DrawService) {}
 
   ngAfterViewInit(): void {
-    this.draw.init(document.getElementById('map'), WORLD_SIZE);
+    this.draw.init(document.getElementById('map'), WORLD_SIZE, SEA_LEVEL);
+    // pick events
+    this.draw.onClick.subscribe(p => this.onPick(p));
+  }
+
+  public generateWorld(): void {
     this.worldgen = new Worker('./worldgen.worker', { type: 'module' });
     this.tasks = new Worker('./tasks.worker', { type: 'module' });
     this.worldgen.onmessage = ({ data }) => this.handleGenMessage(data);
 
     this.worldgen.postMessage({
-      seaLevel: 90,
+      seaLevel: SEA_LEVEL,
       mountainLevel: 200,
       worldSize: WORLD_SIZE,
       nbNations: 5
     });
-    // pick events
-    this.draw.onClick.subscribe(p => this.onPick(p));
   }
 
 
   private handleGenMessage(message: {
-    type: 'progress' | 'end', msg?: string, data?: World
+    type: 'progress' | 'end', msg?: string, data?: World, progress: number
   }): void {
     if (message.type === 'progress') {
-      this.log.push(message.msg);
+      this.progress = {
+        status: message.msg,
+        num: message.progress
+      }
     } else {
       // world has been generated
-      this.log = ['WORLD GENERATED'];
       this.world = message.data;
-      // generate trade routes for the first time
-      this.log.push('Generating trade routes for the first time');
-      this.tick().subscribe(() => {
-        this.draw.drawMap(this.world);
-      });
-    }
-    if (message.data) {
-      this.draw.drawMap(message.data);
+      this.draw.drawTerrain(this.world);
     }
   }
 
@@ -84,6 +82,7 @@ export class AppComponent implements AfterViewInit {
     }
   }
 
+  /*
   public showBiomes(show: boolean): void {
     this.draw.showBiomes = show;
     this.draw.drawMap(this.world);
@@ -108,4 +107,5 @@ export class AppComponent implements AfterViewInit {
     this.draw.showRoads = show;
     this.draw.drawMap(this.world);
   }
+  */
 }

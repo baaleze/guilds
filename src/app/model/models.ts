@@ -32,15 +32,15 @@ export class Tile {
 }
 
 export enum TileType {
-    PLAIN = 1,
-    MOUNTAIN = 2,
-    SEA = 3,
-    FOREST = 4,
-    SWAMP = 5,
-    ICE = 6,
-    SAND = 7,
-    CITY = 8,
-    RIVER = 9
+    PLAIN = 0,
+    MOUNTAIN = 1,
+    SEA = 2,
+    FOREST = 3,
+    SWAMP = 4,
+    ICE = 5,
+    SAND = 6,
+    CITY = 7,
+    RIVER = 8
 }
 
 export enum Resource {

@@ -70,7 +70,7 @@ function generateTerrain(world: World, seaLevel: number, mountainLevel: number, 
 
   submitProgress('Generating terrain', world);
   const finalMap = height.map((line, x) => line.map((t, y) => {
-    const h = Math.floor(t * 256);
+    const h = Math.floor(t * 255);
     return new Tile(getTileType(h, seaLevel, mountainLevel, temp, humid, x, y), new Position(x, y), h);
   }));
   submitProgress('Generating terrain DONE', world);

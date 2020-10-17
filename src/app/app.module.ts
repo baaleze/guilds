@@ -7,7 +7,7 @@ import { AppComponent } from './app.component';
 import { InfoComponent } from './info/info.component';
 import { NotifyService } from './notify.service';
 import { ProgressComponent } from './progress/progress.component';
-import { DrawService } from './draw.service';
+import { DrawService } from './draw/draw.service';
 
 @NgModule({
   declarations: [

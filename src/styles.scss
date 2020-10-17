@@ -9,29 +9,28 @@ html {
 }
 
 #map {
-    display: inline-block;
-    position: relative;
-    canvas {
-        position: absolute;
-        top: 5px;
-        left: 5px;
-    }
-}
-#log-panel {
     position: absolute;
-    left: 5px;
-    bottom: 5px;
-    width: calc(100% - 1040px);
-    height: 150px;
-    overflow: scroll;
+    margin: 0;
+    padding: 0;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 100%;
+}
+#gen-button {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    z-index: 2;
 }
 #info-panel {
     position: absolute;
     right: 5px;
-    top: 5px;
-    width: calc(100% - 1040px);
-    height: calc(100% - 5px);
-    overflow: scroll;
+    top: 0px;
+    width: 500px;
+    height: 100%;
+    overflow-y: scroll;
+    background-color: #fffa;
 
     table {
         border-collapse: collapse;
