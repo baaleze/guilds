@@ -86,4 +86,10 @@ export class Util {
   static getMag(amount: number): number {
     return Math.floor(Math.log10(amount));
   }
+
+  static colorString(color: number[]): string {
+    return color.length === 3 ?
+      `rgb(${color[0]}, ${color[1]}, ${color[2]})` :
+      `rgb(${color[0]}, ${color[1]}, ${color[2]}, ${color[3]})`;
+  }
 }

@@ -1,11 +1,20 @@
 import { Injectable, EventEmitter } from '@angular/core';
-import { Map as OlMap, View } from 'ol';
+import { Feature, Map as OlMap, View } from 'ol';
 import { Extent, getCenter } from 'ol/extent';
 import ImageLayer from 'ol/layer/Image';
 import Static from 'ol/source/ImageStatic';
 import Projection from 'ol/proj/Projection';
 import { City, TileType, World, Tile, Target, Position, Resource } from '../model/models';
 import { Util } from '../util';
+import Layer from 'ol/layer/Layer';
+import VectorLayer from 'ol/layer/Vector';
+import VectorSource from 'ol/source/Vector';
+import Style from 'ol/style/Style';
+import CircleStyle from 'ol/style/Circle';
+import Point from 'ol/geom/Point';
+import Fill from 'ol/style/Fill';
+import Stroke from 'ol/style/Stroke';
+import Text from 'ol/style/Text';
 
 const TILE_SIZE = 16;
 
@@ -61,6 +70,7 @@ export class DrawService {
   container: HTMLElement;
   worldSize: number;
   map: OlMap;
+  cityLayer: Layer;
 
   // resources
   tileset: HTMLImageElement;
@@ -80,7 +90,7 @@ export class DrawService {
     // Map views always need a projection.  Here we just want to map image
     // coordinates directly to map coordinates, so we create a projection that uses
     // the image extent in pixels.
-    var extent: Extent = [0, 0, this.worldSize * TILE_SIZE, this.worldSize * TILE_SIZE];
+    var extent: Extent = [0, 0, (this.worldSize + 1) * TILE_SIZE, (this.worldSize + 1) * TILE_SIZE];
     var projection = new Projection({
       code: 'static-image',
       units: 'pixels',
@@ -104,6 +114,9 @@ export class DrawService {
         maxZoom: 8,
       }),
     });
+    
+    // cities
+    this.createCityLayer(world);
   }
   
 
@@ -130,7 +143,7 @@ export class DrawService {
       this.cx.drawImage(this.tileset,
         tileCoord[1] * TILE_SIZE, tileCoord[0] * TILE_SIZE,
         TILE_SIZE, TILE_SIZE,
-        x * TILE_SIZE, y * TILE_SIZE,
+        x * TILE_SIZE, h - y * TILE_SIZE,
         TILE_SIZE, TILE_SIZE
       );
     }));
@@ -148,13 +161,36 @@ export class DrawService {
             // middle of tile
             const start = [x * TILE_SIZE + TILE_SIZE / 2, y * TILE_SIZE + TILE_SIZE / 2];
             const end = [start[0] + (n.position.x - x) * TILE_SIZE / 2, start[1] + (n.position.y - y) * TILE_SIZE / 2];
-            this.cx.moveTo(start[0], start[1]);
-            this.cx.lineTo(end[0] ,end[1]);
+            this.cx.moveTo(start[0], h - start[1]);
+            this.cx.lineTo(end[0], h - end[1]);
             this.cx.stroke();
           }
         });
       }
     }));
+  }
+
+  createCityLayer(world: World): void {
+    this.cityLayer = new VectorLayer({
+      source: new VectorSource({
+        features: world.cities.map(city => {
+          const f = new Feature(
+            new Point([city.position.x * TILE_SIZE + TILE_SIZE / 2, city.position.y * TILE_SIZE - TILE_SIZE / 2]));
+          f.set('city', city);
+          return f;
+        })
+      }),
+      style: feature => new Style({
+        text: new Text({
+          text: (<City>feature.get('city')).name,
+          fill: new Fill({color: Util.colorString((<City>feature.get('city')).nation.color)}),
+          stroke: new Stroke({color: '#000', width: 2}),
+          font: 'bold 20px Yanone Kaffeesatz',
+          offsetY: -20
+        })
+      })
+    });
+    this.map.addLayer(this.cityLayer);
   }
   computeTileCoord(map: Tile[][], tile: Tile, x: number, y: number): [number, number] {
     switch(tile.type) {
