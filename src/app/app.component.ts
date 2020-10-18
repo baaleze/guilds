@@ -1,10 +1,10 @@
 import { Component, AfterViewInit } from '@angular/core';
-import { World, TileType, Position,Resource, allResources, City } from './model/models';
+import { World, TileType, Position,Resource, allResources, City, Message } from './model/models';
 import { DrawService } from './draw/draw.service';
 import { Util } from './util';
 import { Observable } from 'rxjs';
 
-const WORLD_SIZE = 64;
+const WORLD_SIZE = 256;
 const SEA_LEVEL = 90;
 
 @Component({
@@ -43,9 +43,7 @@ export class AppComponent implements AfterViewInit {
   }
 
 
-  private handleGenMessage(message: {
-    type: 'progress' | 'end', msg?: string, data?: World, progress: number
-  }): void {
+  private handleGenMessage(message: Message): void {
     if (message.type === 'progress') {
       this.progress = {
         status: message.msg,
@@ -53,8 +51,9 @@ export class AppComponent implements AfterViewInit {
       }
     } else {
       // world has been generated
-      this.world = message.data;
-      this.draw.drawTerrain(this.world);
+      this.progress = undefined;
+      this.world = message.world;
+      this.draw.drawMap(this.world);
     }
   }
 
@@ -62,7 +61,7 @@ export class AppComponent implements AfterViewInit {
     return new Observable(obs => {
       this.tasks.onmessage = ({ data: message }) => {
         if (message.type === 'tickEnd') {
-          this.world = message.data;
+          this.world = message.world;
           obs.next();
           obs.complete();
           this.tasks.onmessage = undefined;

@@ -262,4 +262,11 @@ export class Position {
     ) {}
 }
 
+export interface Message {
+    msg?: string;
+    world?: World;
+    progress: number;
+    type: string;
+}
+
 export type Target = People | City | Faction;

@@ -66,6 +66,19 @@ export class Util {
     return { rivers, biomes };
   }
 
+  static getNeighbors(map: Tile[][], pos: Position): Tile[] {
+    const neigh: Tile[] = [];
+    for (let x = pos.x - 1; x <= pos.x + 1; x++) {
+      for (let y = pos.y - 1; y <= pos.y + 1; y++) {
+        if ((x >= 0 && x < map.length && y >= 0 && y < map[x].length) // bounds
+        && !(x === pos.x && y === pos.y)) { // do not include self
+          neigh.push(map[x][y]);
+        }
+      }
+    }
+    return neigh;
+  }
+
   /**
      * Scale or magnitude of the city. Equal to the nearest power of 10 of the population.
      * (1530 is 4, 23 is 2, 554984 is 6...)

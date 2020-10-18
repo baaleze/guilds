@@ -1,6 +1,6 @@
 /// <reference lib="webworker" />
 
-import { World, Resource, City, allResources, Industry, TileType } from './model/models';
+import { World, Resource, City, allResources, Industry, TileType, Message } from './model/models';
 import { Util } from './util';
 
 
@@ -9,20 +9,19 @@ addEventListener('message', ({ data }) => {
   postMessage(handleMessage(data));
 });
 
-function handleMessage(data): {type: string, msg?: string, data?: any} {
+function handleMessage(data): Message {
   switch (data.task) {
     case 'tick':
       return tick(data.world);
     default:
-      return {type: 'error', msg: `Unknown task ${data.task}`};
+      return {type: 'error', msg: `Unknown task ${data.task}`, progress: 100};
   }
 }
 
-function tick(world: World): {type: string, msg?: string, data: World} {
+function tick(world: World): Message {
   world.day = (world.day + 1) % 7;
   // update cities every week
   if (world.day === 0) {
-    console.log('UPDATING CITIES');
     // Update access for every city
     world.cities.forEach(city => city.access = computeAccess(city, world));
 
@@ -76,8 +75,7 @@ function tick(world: World): {type: string, msg?: string, data: World} {
   }
 
   // update movement of every one
-  console.log('END TICK');
-  return {type: 'tickEnd', data: world};
+  return {type: 'tickEnd', world, progress: 100};
 }
 
 function computeGrowth(deficits: Map<Resource, number>, city: City, world: World): number {

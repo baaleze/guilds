@@ -2,11 +2,33 @@
 
 html {
     font-family: 'Yanone Kaffeesatz', sans-serif;
+    background-color: #000;
 }
 
 .danger {
     color: red;
 }
+  
+  .progress {
+    display: flex;
+    height: 50px;
+    overflow: hidden; // force rounded corners by cropping it
+    font-size: 20px;
+    background-color: #000;
+    position: absolute;
+    left: 0px;
+    top: 50%;
+    width: 100%;
+  }
+  
+  .progress-bar {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    color: #000;
+    text-align: center;
+    background-color: #fff;
+  }
 
 #map {
     position: absolute;

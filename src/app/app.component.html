@@ -1,6 +1,9 @@
 <button id="gen-button" (click)="generateWorld()">GENERATE</button>
 <div id = "map">
 </div>
-<div *ngIf="world && world.cities" id="info-panel">
+<div *ngIf="world && world.cities" id="info-panel" class="container">
   <app-info *ngFor="let c of world.cities" [city]="c"></app-info>
+</div>
+<div class="progress" *ngIf="progress">
+  <div class="progress-bar" [style]="'width: ' + progress.num + '%'" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">{{progress.status}}</div>
 </div>

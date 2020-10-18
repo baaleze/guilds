@@ -1,6 +1,6 @@
 /// <reference lib="webworker" />
 
-import { Tile, Position, World, City, Road, TileType, Nation, Industry, Node, IndustryName } from './model/models';
+import { Tile, Position, World, City, Road, TileType, Nation, Industry, Node, IndustryName, Message } from './model/models';
 import HeightMap from './generation/mapdisplacement';
 import { Util } from './util';
 import { PriorityQueue } from './generation/priorityqueue';
@@ -43,22 +43,28 @@ addEventListener('message', ({ data }) => {
   // terrain
   const nbRivers = Math.floor(data.worldSize / 15);
   const nbCities = Math.floor(data.worldSize / 12);
+  submitProgress('Generating terrain', world, 5);
   generateTerrain(world, data.seaLevel, data.mountainLevel, data.worldSize, nbRivers);
+  
 
   // cities
+  submitProgress('Generating cities', world, 25);
   spawnCities(nbCities, world);
 
   // roads
+  submitProgress('Generating roads', world, 50);
   buildRoads(world);
 
   // regions
+  submitProgress('Generating regions', world, 75);
   buildRegions(world);
 
-  postMessage({ type: 'end', data: world});
+  postMessage({ type: 'end', world, progress: 100});
 });
 
-function submitProgress(msg: string, world: World): void {
-  postMessage({ type : 'progress', msg, data: world});
+function submitProgress(msg: string, world: World, progress: number): void {
+  const message: Message = { type : 'progress', msg, world, progress };
+  postMessage(message);
 }
 
 function generateTerrain(world: World, seaLevel: number, mountainLevel: number, worldSize: number, nbRivers: number): void {
@@ -68,37 +74,29 @@ function generateTerrain(world: World, seaLevel: number, mountainLevel: number, 
   const temp = new HeightMap(worldSize).map;
   const humid = new HeightMap(worldSize).map;
 
-  submitProgress('Generating terrain', world);
   const finalMap = height.map((line, x) => line.map((t, y) => {
     const h = Math.floor(t * 255);
     return new Tile(getTileType(h, seaLevel, mountainLevel, temp, humid, x, y), new Position(x, y), h);
   }));
-  submitProgress('Generating terrain DONE', world);
 
   // remove depressions (holes)
-  submitProgress('Removing holes', world);
   handleHoles(finalMap, seaLevel);
-  submitProgress('Removing holes DONE', world);
 
   // filter only high enough tiles
   const mountainLevelTiles = finalMap.reduce((acc, val) => acc.concat(val), []).filter(t => t.altitude >= mountainLevel);
 
   // make rivers
   for (let r = 0; r < nbRivers; r++) {
-    submitProgress(`Making River ${r}`, world);
     makeRiver(finalMap, mountainLevelTiles, `${r}`);
   }
 
   world.map = finalMap;
-  submitProgress('Making rivers DONE', world);
 }
 
 function buildRoads(world: World): void {
   // land route
-  submitProgress(`Building land roads`, world);
   buildRoadsRecursive(world.map, world.cities, false);
   // sea route
-  submitProgress(`Building sea roads`, world);
   buildRoadsRecursive(world.map,
     // only cities with SEA next to them
     world.cities.filter(c => c.port !== undefined),
@@ -145,7 +143,6 @@ function spawnCities(nbCities: number, world: World): void {
   // spawn cities
   const cities: City[] = [];
   for (let r = 0; r < nbCities; r++) {
-    submitProgress(`Creating city ${r}`, world);
     const pos = getCitySpot(map, cities);
     map[pos.x][pos.y].type = TileType.CITY;
     cities.push(createCityFromSpot(map, pos, '' + r));
@@ -160,7 +157,7 @@ function createCityFromSpot(map: Tile[][], pos: Position, name: string): City {
   // population is what is needed plus a little more
   const mag = Util.randomIntBetween(2, 5);
   let pop = Math.pow(10, mag);
-  pop = pop + pop * Math.random();
+  pop = Math.floor(pop + pop * Math.random());
   const industries = generateIndustries(scan.biomes, Math.floor(Math.log10(pop)));
   const c = new City(name, pop, industries, pos, Util.randomInArray(cityColors));
 
@@ -173,13 +170,12 @@ function createCityFromSpot(map: Tile[][], pos: Position, name: string): City {
 }
 
 function buildRegions(world: World): void {
-  submitProgress('Building Regions', world);
   const queue = new PriorityQueue<{t: Tile, score: number}>((a, b) => a.score < b.score);
   // put the neighbors of all cities in the queue
   world.cities.forEach(city => {
     // init neighbours
     world.neighbours.set(city, []);
-    getNeighbors(world.map, city.position).forEach(n => {
+    Util.getNeighbors(world.map, city.position).forEach(n => {
       n.region = city;
       queue.push({t: n, score: getMovementScore(world.map[city.position.x][city.position.y], n)});
     });
@@ -188,7 +184,7 @@ function buildRegions(world: World): void {
   while (!queue.isEmpty()) {
     // next is one with lowest score
     const next = queue.pop();
-    getNeighbors(world.map, next.t.position).forEach(n => {
+    Util.getNeighbors(world.map, next.t.position).forEach(n => {
       if (!n.region) { // not yet any region
         n.region = next.t.region;
         queue.push({t: n, score: next.score + getMovementScore(next.t, n)});
@@ -205,7 +201,6 @@ function buildRegions(world: World): void {
       }
     });
   }
-  submitProgress('Associationg Nations with regions', world);
   // now choose nations for each
   const cityQueue = new PriorityQueue<City>((a, b) => a.population > b.population);
   world.nations.forEach(nation => {
@@ -231,12 +226,10 @@ function buildRegions(world: World): void {
       }
     });
   }
-  submitProgress('Naming cities and rivers', world);
   world.cities.forEach(c => {
     c.name = c.nation.lang.generateName('city');
     c.rivers = c.rivers.map(r => nameRiver(r, c.nation.lang, world.map));
   });
-  submitProgress('Building Regions DONE', world);
 }
 
 function getMovementScore(from: Tile, to: Tile): number {
@@ -399,7 +392,7 @@ function handleHoles(map: Tile[][], seaLevel: number): void {
     } else {
       current = open.pop();
     }
-    getNeighbors(map, current.position).forEach(n => {
+    Util.getNeighbors(map, current.position).forEach(n => {
       if (!closed[n.position.x][n.position.y]) {
         // mark as done
         closed[n.position.x][n.position.y] = true;
@@ -416,21 +409,8 @@ function handleHoles(map: Tile[][], seaLevel: number): void {
   }
 }
 
-function getNeighbors(map: Tile[][], pos: Position): Tile[] {
-  const neigh: Tile[] = [];
-  for (let x = pos.x - 1; x <= pos.x + 1; x++) {
-    for (let y = pos.y - 1; y <= pos.y + 1; y++) {
-      if ((x >= 0 && x < map.length && y >= 0 && y < map[x].length) // bounds
-      && !(x === pos.x && y === pos.y)) { // do not include self
-        neigh.push(map[x][y]);
-      }
-    }
-  }
-  return neigh;
-}
-
 function getRandomLowerNeighbor(map: Tile[][], tile: Tile): Tile {
-  const neigh = getNeighbors(map, tile.position);
+  const neigh = Util.getNeighbors(map, tile.position);
   // check in strictly lower
   const lower = neigh.filter(ti => ti.altitude < tile.altitude);
   let t: Tile;
