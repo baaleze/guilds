@@ -8,7 +8,6 @@ export class World {
     public map: Tile[][];
     public nations: Nation[];
     public neighbours = new Map<City, City[]>();
-    public tradeRoutes: TradeRoute[];
     public day = 6;
 
     constructor() {}
@@ -104,6 +103,7 @@ export class City {
     public resources = new Map<Resource, number>();
     public deficits = new Map<Resource, number>();
     public needs = new Map<Resource, number>();
+    public caravans: Caravan[] = [];
 
     constructor(
         public name: string,
@@ -121,13 +121,6 @@ export class Road {
         public to: City,
         public path: Node[],
         public cost: number
-    ) {}
-}
-
-export class TradeRoute {
-    constructor(
-        public road: Road,
-        public resource: Resource
     ) {}
 }
 
@@ -208,22 +201,19 @@ export class Industry {
     ]);
 }
 
-export class ResourceStock {
-    constructor(
-        public res: Resource,
-        public amount: number,
-        public stolen = false
-    ) {}
-}
-
-
-export class TravellingGroup {
-    public resources = new Map<Resource, number>();
+export class Caravan {
     constructor(
         public name: string,
-        public members: People[],
-        public mission: Mission,
-        public position: Position
+        public trade: number,
+        public guard: number,
+        public stealth: number,
+        public nbPeople: number,
+        public position: Position,
+        public nation: Nation,
+        public route: Road,
+        public resourceGo: Resource,
+        public resourceBack: Resource,
+        public stock: number
     ) {}
 }
 

@@ -3,6 +3,7 @@
 import { World, Resource, City, allResources, Industry, TileType, Message } from './model/models';
 import { Util } from './util';
 
+const TICK_TIME = 0.1;
 
 addEventListener('message', ({ data }) => {
   console.log('GOT MESSAGE', data);
@@ -19,63 +20,105 @@ function handleMessage(data): Message {
 }
 
 function tick(world: World): Message {
-  world.day = (world.day + 1) % 7;
+  world.day = (world.day + TICK_TIME) % 7;
   // update cities every week
   if (world.day === 0) {
-    // Update access for every city
-    world.cities.forEach(city => city.access = computeAccess(city, world));
+    updateCities(world);
+  }
 
+  // spawn a thing ?
+  spawnCaravans(world);
+
+  // move every group on the map
+
+
+  return {type: 'tickEnd', world, progress: 100};
+}
+
+function spawnCaravans(world: World): void {
+  // get all cities with enough access to spawn caravans and pick one
+  const city = Util.randomInArray(world.cities.filter(c => c.caravans.length < c.access));
+
+  // now to find which resource to trade
+  const possibleResources = Array.from(city.production.keys()).filter(res =>
+    // filter resources that are needed by neighbors
+    city.roads.some(r => r.to.needs.has(res))
+  );
+  let resourceToTrade: Resource;
+  if (possibleResources.length > 0) {
+    resourceToTrade = Util.randomInArray(possibleResources);
+  } else {
+    // fuck it use random one
+    resourceToTrade = Util.randomInArray(Array.from(city.needs.keys()));
+  }
+
+  // choose a city to send the resource to
+  let cityToTrade: City;
+  const possibleCities = world.cities.filter(c => c !== city && c.needs.has(resourceToTrade));
+  if (possibleCities.length > 0) {
+    cityToTrade = Util.randomInArray(possibleCities);
+  } else {
+    // pick random one
+    cityToTrade = Util.randomInArray(world.cities.filter(c => c !== city));
+  }
+
+  // LETS GOOOOOOO
+  // TODO TODO
+
+}
+
+function updateCities(world: World): void {
+  // Update access for every city
+  world.cities.forEach(city => city.access = computeAccess(city, world));
+
+  world.cities.forEach(city => {
     // get best production for each resource
-    const bestProd = getBestProd(world.cities);
-    world.cities.forEach(city => {
-      // check for needs
-      const deficits = new Map<Resource, number>();
-      city.needs = sumAllNeeds(city);
-      city.needs.forEach((need, res) => {
-        // is global demand met ?
-        if (need > city.access || need > bestProd.get(res)) {
-          // Access or prod in the world are not enough
-          deficits.set(res, need - Math.min(city.access, bestProd.get(res)));
-        } else {
-          deficits.set(res, 0);
+    const bestProd = getBestProd(world.cities, city);
+
+    // check for needs
+    const deficits = new Map<Resource, number>();
+    city.needs = sumAllNeeds(city);
+    city.needs.forEach((need, res) => {
+      // is global demand met ?
+      if (need > city.access || need > bestProd.get(res)) {
+        // Access or prod in the world are not enough
+        deficits.set(res, need - Math.min(city.access, bestProd.get(res)));
+      } else {
+        deficits.set(res, 0);
+      }
+    });
+
+    city.deficits = deficits;
+
+    // recompute stability
+    city.stability = computeStability(deficits);
+
+    // compute growth
+    city.growth = computeGrowth(deficits, city, world);
+
+    // update city population
+    city.population = Math.floor(city.population * (1 + city.growth / 10));
+
+    // update productions and fill stocks
+    city.industries.forEach(ind => {
+      const industry = Industry.industries.get(ind);
+      // get the biggest shortage for this industry
+      let short = 0;
+      industry.needs.forEach(need => {
+        if (deficits.get(need.resource) > short) {
+          short = deficits.get(need.resource);
         }
       });
 
-      city.deficits = deficits;
-
-      // recompute stability
-      city.stability = computeStability(deficits);
-
-      // compute growth
-      city.growth = computeGrowth(deficits, city, world);
-
-      // update city population
-      city.population = Math.floor(city.population * (1 + city.growth / 10));
-
-      // update productions and fill stocks
-      city.industries.forEach(ind => {
-        const industry = Industry.industries.get(ind);
-        // get the biggest shortage for this industry
-        let short = 0;
-        industry.needs.forEach(need => {
-          if (deficits.get(need.resource) > short) {
-            short = deficits.get(need.resource);
-          }
-        });
-
-        industry.produces.forEach(prod => {
-          // update production, removing shortage
-          const newProd = Math.max(0, prod.mag(Util.getMag(city.population)) - short);
-          city.production.set(prod.resource, newProd);
-          // update stocks
-          city.resources.set(prod.resource, newProd * 100);
-        });
+      industry.produces.forEach(prod => {
+        // update production, removing shortage
+        const newProd = Math.max(0, prod.mag(Util.getMag(city.population)) - short);
+        city.production.set(prod.resource, newProd);
+        // update stocks
+        city.resources.set(prod.resource, newProd * 100);
       });
     });
-  }
-
-  // update movement of every one
-  return {type: 'tickEnd', world, progress: 100};
+  });
 }
 
 function computeGrowth(deficits: Map<Resource, number>, city: City, world: World): number {
@@ -134,7 +177,7 @@ function computeStability(deficits: Map<Resource, number>): number {
   return stab;
 }
 
-function getBestProd(cities: City[]): Map<Resource, number> {
+function getBestProd(cities: City[], city: City): Map<Resource, number> {
   const bestProd = new Map<Resource, number>();
   allResources.forEach(r => {
     let best = 0;
@@ -154,6 +197,10 @@ function getBestProd(cities: City[]): Map<Resource, number> {
             }
           });
         });
+      }
+      // if same nation +3 bonus!
+      if (c.nation === city.nation) {
+        prod += 3;
       }
       if (prod > best) {
         best = prod;

@@ -90,11 +90,11 @@ export class DrawService {
     // Map views always need a projection.  Here we just want to map image
     // coordinates directly to map coordinates, so we create a projection that uses
     // the image extent in pixels.
-    var extent: Extent = [0, 0, (this.worldSize + 1) * TILE_SIZE, (this.worldSize + 1) * TILE_SIZE];
-    var projection = new Projection({
+    const extent: Extent = [0, 0, (this.worldSize + 1) * TILE_SIZE, (this.worldSize + 1) * TILE_SIZE];
+    const projection = new Projection({
       code: 'static-image',
       units: 'pixels',
-      extent: extent,
+      extent,
     });
 
     this.map = new OlMap({
@@ -102,23 +102,22 @@ export class DrawService {
         new ImageLayer({
           source: new Static({
             url: this.cx.canvas.toDataURL(),
-            projection: projection,
+            projection,
             imageExtent: extent,
           }),
         }) ],
       target: 'map',
       view: new View({
-        projection: projection,
+        projection,
         center: getCenter(extent),
         zoom: 2,
         maxZoom: 8,
       }),
     });
-    
+
     // cities
     this.createCityLayer(world);
   }
-  
 
   loadResources(): void {
     const tileSetImg = document.createElement('img');
@@ -147,15 +146,16 @@ export class DrawService {
         TILE_SIZE, TILE_SIZE
       );
     }));
-    map.forEach((line,x) => line.forEach((tile, y) => {
+    map.forEach((line, x) => line.forEach((tile, y) => {
       // roads
-      this.cx.strokeStyle = 'black';
       this.cx.lineWidth = 5;
       this.cx.lineCap = 'round';
-      if (tile.isRoad) {
+      if (tile.isRoad || tile.isSeaRoad || tile.type === TileType.CITY) {
         // check each neighbour
         Util.getNeighbors(map, tile.position).forEach(n => {
-          if (n.isRoad || n.type === TileType.CITY) {
+          if (n.isRoad && tile.isRoad || n.isSeaRoad && tile.isSeaRoad ||
+            n.type === TileType.CITY && tile.isRoad || tile.type === TileType.CITY && n.isRoad) {
+            this.cx.strokeStyle = tile.isSeaRoad ? 'red' : 'black';
             // draw a road in this direction!
             this.cx.beginPath();
             // middle of tile
@@ -182,8 +182,8 @@ export class DrawService {
       }),
       style: feature => new Style({
         text: new Text({
-          text: (<City>feature.get('city')).name,
-          fill: new Fill({color: Util.colorString((<City>feature.get('city')).nation.color)}),
+          text: (feature.get('city') as City).name,
+          fill: new Fill({color: Util.colorString((feature.get('city') as City).nation.color)}),
           stroke: new Stroke({color: '#000', width: 2}),
           font: 'bold 20px Yanone Kaffeesatz',
           offsetY: -20
@@ -193,25 +193,25 @@ export class DrawService {
     this.map.addLayer(this.cityLayer);
   }
   computeTileCoord(map: Tile[][], tile: Tile, x: number, y: number): [number, number] {
-    switch(tile.type) {
+    switch (tile.type) {
       case TileType.PLAIN:
-        return [0,0];
+        return [0, 0];
       case TileType.MOUNTAIN:
-        return [0,1];
+        return [0, 1];
       case TileType.FOREST:
-        return [0,2];
+        return [0, 2];
       case TileType.ICE:
-        return [0,3];
+        return [0, 3];
       case TileType.SWAMP:
-        return [0,4];
+        return [0, 4];
       case TileType.SAND:
-        return [0,5];
+        return [0, 5];
       case TileType.CITY:
-        return [0,6];
+        return [0, 6];
       case TileType.SEA:
-        return [0,7];
+        return [0, 7];
       case TileType.RIVER:
-        return [1,0];
+        return [1, 0];
     }
   }
 }

@@ -8,6 +8,9 @@ import { LanguageGenerator } from './generation/language/language.generator';
 import { Astar } from './generation/astar.service';
 
 const CITY_SCORE_RADIUS = 3;
+const NB_RIVERS_BY_64_MAP = 8;
+const NB_CITY_BY_64_MAP = 5;
+const EMPTY_BORDER = 0.2;
 
 const nationColors = [
   [30, 255, 30],
@@ -41,11 +44,10 @@ addEventListener('message', ({ data }) => {
   }
 
   // terrain
-  const nbRivers = Math.floor(data.worldSize / 15);
-  const nbCities = Math.floor(data.worldSize / 12);
+  const nbRivers = Math.floor(data.worldSize * NB_RIVERS_BY_64_MAP / 64);
+  const nbCities = Math.floor(data.worldSize * NB_CITY_BY_64_MAP / 64);
   submitProgress('Generating terrain', world, 5);
   generateTerrain(world, data.seaLevel, data.mountainLevel, data.worldSize, nbRivers);
-  
 
   // cities
   submitProgress('Generating cities', world, 25);
@@ -109,14 +111,14 @@ function buildRoadsRecursive(map: Tile[][], cities: City[], seaRoute: boolean): 
   const citiesLeft = cities.slice(1);
   if (citiesLeft.length > 0) {
     citiesLeft.forEach(c => {
-      if (Util.dist(city.position.x, city.position.y, c.position.x, c.position.y) < 100) {
+      if (Util.dist(city.position.x, city.position.y, c.position.x, c.position.y) < 75) {
         // is sea route, start and end point must be on sea
         if (seaRoute) {
           const path = findPath(map, city.port, c.port, seaRoute);
           if (path) {
             path.forEach(p => map[p.x][p.y].isSeaRoad = true);
-            city.roads.push(new Road(city, c, path, path[path.length - 1].g));
-            c.roads.push(new Road(c, city, path.reverse(), path[path.length - 1].g));
+            city.roads.push(new Road(city, c, path, path ? path[path.length - 1].g : -1));
+            c.roads.push(new Road(c, city, path.reverse(), path ? path[path.length - 1].g : -1));
           }
         } else {
           const path = findPath(map, city.position, c.position, seaRoute);
@@ -303,7 +305,8 @@ function getCitySpot(map: Tile[][], cities: City[]): Position {
 function computeCityScore(map: Tile[][], x: number, y: number, cities: City[]): number {
   // no city on already city, on the sea or on the border of the map
   if (map[x][y].type === TileType.CITY || map[x][y].type === TileType.SEA ||
-    x < 10 || x > map.length - 10 || y < 10 || y > map[0].length) {
+    x < map.length * EMPTY_BORDER || x > map.length * (1 - EMPTY_BORDER)  ||
+    y < map[0].length * EMPTY_BORDER || y > map[0].length  * (1 - EMPTY_BORDER)) {
     return 0;
   }
   // get distance to nearest city
