@@ -4,13 +4,13 @@ import { Extent, getCenter } from 'ol/extent';
 import ImageLayer from 'ol/layer/Image';
 import Static from 'ol/source/ImageStatic';
 import Projection from 'ol/proj/Projection';
-import { City, TileType, World, Tile, Target, Position, Resource } from '../model/models';
+import { City, TileType, World, Tile, Target, Position, Resource, Caravan } from '../model/models';
 import { Util } from '../util';
 import Layer from 'ol/layer/Layer';
 import VectorLayer from 'ol/layer/Vector';
 import VectorSource from 'ol/source/Vector';
 import Style from 'ol/style/Style';
-import CircleStyle from 'ol/style/Circle';
+import Icon from 'ol/style/Icon';
 import Point from 'ol/geom/Point';
 import Fill from 'ol/style/Fill';
 import Stroke from 'ol/style/Stroke';
@@ -71,6 +71,7 @@ export class DrawService {
   worldSize: number;
   map: OlMap;
   cityLayer: Layer;
+  caravanLayer: Layer;
 
   // resources
   tileset: HTMLImageElement;
@@ -117,6 +118,45 @@ export class DrawService {
 
     // cities
     this.createCityLayer(world);
+  }
+
+  refreshLayers(refreshLayer: string, world: World): void {
+    if (refreshLayer.indexOf('K') !== -1) {
+      this.refreshCaravanLayer(world);
+    }
+  }
+
+  refreshCaravanLayer(world: World): void {
+    // get list of caravans
+    let caravans: Caravan[] = [];
+    world.cities.map(c => c.caravans).forEach(c => caravans = caravans.concat(c));
+    // recreate caravan layer
+    if (!this.caravanLayer) {
+      this.caravanLayer = new VectorLayer({
+        source: new VectorSource({
+          features: caravans.map(c => {
+            const f = new Feature(new Point([c.position.x, c.position.y]));
+            f.setId(c.id);
+            return f;
+          })
+        }),
+        style: new Style({
+          image: new Icon({
+            src: '/assets/icons/camel.png',
+            imgSize: [20, 20]
+          })
+        })
+      });
+      this.map.addLayer(this.caravanLayer);
+    } else {
+      this.caravanLayer.setSource(new VectorSource({
+        features: caravans.map(c => {
+          const f = new Feature(new Point([c.position.x, c.position.y]));
+          f.setId(c.id);
+          return f;
+        })
+      }));
+    }
   }
 
   loadResources(): void {

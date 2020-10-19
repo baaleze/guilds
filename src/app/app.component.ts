@@ -54,6 +54,7 @@ export class AppComponent implements AfterViewInit {
       this.progress = undefined;
       this.world = message.world;
       this.draw.drawMap(this.world);
+      this.tick().subscribe();
     }
   }
 
@@ -62,6 +63,10 @@ export class AppComponent implements AfterViewInit {
       this.tasks.onmessage = ({ data: message }) => {
         if (message.type === 'tickEnd') {
           this.world = message.world;
+          if (this.world.refreshLayer !== '') {
+            this.draw.refreshLayers(this.world.refreshLayer, this.world);
+            this.world.refreshLayer = '';
+          }
           obs.next();
           obs.complete();
           this.tasks.onmessage = undefined;
@@ -70,6 +75,8 @@ export class AppComponent implements AfterViewInit {
       this.tasks.postMessage({task: 'tick', world: this.world});
     });
   }
+
+  
 
   onPick(p: Position): void {
     if (this.world) {

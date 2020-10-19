@@ -1,13 +1,13 @@
 /// <reference lib="webworker" />
 
-import { World, Resource, City, allResources, Industry, TileType, Message } from './model/models';
+import { World, Resource, City, allResources, Industry, TileType, Message, Caravan, Position } from './model/models';
 import { Util } from './util';
 
 const TICK_TIME = 0.1;
 
-addEventListener('message', ({ data }) => {
+addEventListener('message', (data) => {
   console.log('GOT MESSAGE', data);
-  postMessage(handleMessage(data));
+  postMessage(handleMessage(data.data));
 });
 
 function handleMessage(data): Message {
@@ -63,8 +63,10 @@ function spawnCaravans(world: World): void {
   }
 
   // LETS GOOOOOOO
-  // TODO TODO
-
+  const caravan = new Caravan('Caravan !!', 1, 1, 1, 10, Util.copyPosition(city.position), city.nation,
+    city.roads.find(r => r.to === cityToTrade), resourceToTrade, undefined, 500);
+  city.caravans.push(caravan);
+  world.refreshLayer += 'K';
 }
 
 function updateCities(world: World): void {

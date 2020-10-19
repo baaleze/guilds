@@ -9,6 +9,7 @@ export class World {
     public nations: Nation[];
     public neighbours = new Map<City, City[]>();
     public day = 6;
+    public refreshLayer = '';
 
     constructor() {}
 }
@@ -202,6 +203,9 @@ export class Industry {
 }
 
 export class Caravan {
+    static nextId = 0;
+    public id: number;
+
     constructor(
         public name: string,
         public trade: number,
@@ -214,7 +218,9 @@ export class Caravan {
         public resourceGo: Resource,
         public resourceBack: Resource,
         public stock: number
-    ) {}
+    ) {
+        this.id = Caravan.nextId++;
+    }
 }
 
 export class Mission {

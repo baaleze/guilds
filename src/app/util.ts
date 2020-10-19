@@ -92,4 +92,8 @@ export class Util {
       `rgb(${color[0]}, ${color[1]}, ${color[2]})` :
       `rgb(${color[0]}, ${color[1]}, ${color[2]}, ${color[3]})`;
   }
+
+  static copyPosition(pos: Position): Position {
+    return new Position(pos.x, pos.y);
+  }
 }
