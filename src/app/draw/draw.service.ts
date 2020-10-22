@@ -120,41 +120,52 @@ export class DrawService {
     this.createCityLayer(world);
   }
 
-  refreshLayers(refreshLayer: string, world: World): void {
-    if (refreshLayer.indexOf('K') !== -1) {
-      this.refreshCaravanLayer(world);
+  updateLayers(world: World): void {
+    this.updateCaravans(world);
+  }
+  updateCaravans(world: World): void {
+    if (this.caravanLayer) {
+      const source = this.caravanLayer.getSource() as VectorSource<Point>;
+      source.forEachFeature(f =>
+        f.getGeometry().setCoordinates(
+          this.toOlPosition(world.caravans.get(Number(f.getId())).position)
+        )
+      );
     }
   }
 
-  refreshCaravanLayer(world: World): void {
+  rebuildLayers(refreshLayer: string, world: World): void {
+    if (refreshLayer.indexOf('K') !== -1) {
+      this.rebuildCaravanLayer(world);
+    }
+  }
+
+  rebuildCaravanLayer(world: World): void {
     // get list of caravans
-    let caravans: Caravan[] = [];
-    world.cities.map(c => c.caravans).forEach(c => caravans = caravans.concat(c));
+    const caravans: Feature[] = [];
+    world.caravans.forEach((c, id) => {
+      const f = new Feature(new Point(this.toOlPosition(c.position)));
+      f.setId(id);
+      caravans.push(f);
+    });
+    console.log(`Adding ${caravans.length} caravans`);
     // recreate caravan layer
     if (!this.caravanLayer) {
       this.caravanLayer = new VectorLayer({
         source: new VectorSource({
-          features: caravans.map(c => {
-            const f = new Feature(new Point([c.position.x, c.position.y]));
-            f.setId(c.id);
-            return f;
-          })
+          features: caravans
         }),
         style: new Style({
           image: new Icon({
             src: '/assets/icons/camel.png',
-            imgSize: [20, 20]
+            scale: 0.03125
           })
         })
       });
       this.map.addLayer(this.caravanLayer);
     } else {
       this.caravanLayer.setSource(new VectorSource({
-        features: caravans.map(c => {
-          const f = new Feature(new Point([c.position.x, c.position.y]));
-          f.setId(c.id);
-          return f;
-        })
+        features: caravans
       }));
     }
   }
@@ -199,7 +210,7 @@ export class DrawService {
             // draw a road in this direction!
             this.cx.beginPath();
             // middle of tile
-            const start = [x * TILE_SIZE + TILE_SIZE / 2, y * TILE_SIZE + TILE_SIZE / 2];
+            const start = [x * TILE_SIZE + TILE_SIZE / 2, (y - 1) * TILE_SIZE + TILE_SIZE / 2];
             const end = [start[0] + (n.position.x - x) * TILE_SIZE / 2, start[1] + (n.position.y - y) * TILE_SIZE / 2];
             this.cx.moveTo(start[0], h - start[1]);
             this.cx.lineTo(end[0], h - end[1]);
@@ -215,7 +226,7 @@ export class DrawService {
       source: new VectorSource({
         features: world.cities.map(city => {
           const f = new Feature(
-            new Point([city.position.x * TILE_SIZE + TILE_SIZE / 2, city.position.y * TILE_SIZE - TILE_SIZE / 2]));
+            new Point(this.toOlPosition(city.position)));
           f.set('city', city);
           return f;
         })
@@ -232,6 +243,11 @@ export class DrawService {
     });
     this.map.addLayer(this.cityLayer);
   }
+
+  toOlPosition(pos: Position): [number, number] {
+    return [pos.x * TILE_SIZE + TILE_SIZE / 2, (pos.y - 1) * TILE_SIZE + TILE_SIZE / 2];
+  }
+
   computeTileCoord(map: Tile[][], tile: Tile, x: number, y: number): [number, number] {
     switch (tile.type) {
       case TileType.PLAIN:

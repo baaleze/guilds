@@ -3,7 +3,7 @@
 import { World, Resource, City, allResources, Industry, TileType, Message, Caravan, Position } from './model/models';
 import { Util } from './util';
 
-const TICK_TIME = 0.1;
+const TICK_TIME = 1;
 
 addEventListener('message', (data) => {
   console.log('GOT MESSAGE', data);
@@ -14,13 +14,20 @@ function handleMessage(data): Message {
   switch (data.task) {
     case 'tick':
       return tick(data.world);
+    case 'init':
+      return init(data.world);
     default:
       return {type: 'error', msg: `Unknown task ${data.task}`, progress: 100};
   }
 }
 
+function init(world: World): Message {
+  updateCities(world);
+  return {type: 'initEnd', world, progress: 100};
+}
+
 function tick(world: World): Message {
-  world.day = (world.day + TICK_TIME) % 7;
+  world.day = (world.day + TICK_TIME) % 70;
   // update cities every week
   if (world.day === 0) {
     updateCities(world);
@@ -30,14 +37,37 @@ function tick(world: World): Message {
   spawnCaravans(world);
 
   // move every group on the map
-
+  moveEverything(world);
 
   return {type: 'tickEnd', world, progress: 100};
 }
 
+function moveEverything(world: World): void {
+  // move caravans
+  world.caravans.forEach(c => {
+    // move along the road
+    c.progress += c.speed * TICK_TIME;
+    if (c.progress >= c.route.path.length - 1) {
+      // arrived!
+      c.position.x = c.route.to.position.x;
+      c.position.y = c.route.to.position.y;
+    } else {
+      // recompute position
+      const part = Math.floor(c.progress);
+      const between = c.progress - part;
+      const before = c.route.path[part];
+      const after = c.route.path[part + 1];
+      // interpolate position
+      c.position.x = after.x * between + before.x * (1 - between);
+      c.position.y = after.y * between + before.y * (1 - between);
+    }
+  });
+}
+
 function spawnCaravans(world: World): void {
   // get all cities with enough access to spawn caravans and pick one
-  const city = Util.randomInArray(world.cities.filter(c => c.caravans.length < c.access));
+  const city = Util.randomInArray(world.cities.filter(c => c.caravans.length < 2));
+  if (!city) {return;}
 
   // now to find which resource to trade
   const possibleResources = Array.from(city.production.keys()).filter(res =>
@@ -54,9 +84,11 @@ function spawnCaravans(world: World): void {
 
   // choose a city to send the resource to
   let cityToTrade: City;
-  const possibleCities = world.cities.filter(c => c !== city && c.needs.has(resourceToTrade));
+  const possibleCities = city.roads.filter(r => r.to.needs.has(resourceToTrade));
   if (possibleCities.length > 0) {
-    cityToTrade = Util.randomInArray(possibleCities);
+    cityToTrade = Util.randomInArray(possibleCities).to;
+  } else if (possibleCities.length === 0) {
+    return;
   } else {
     // pick random one
     cityToTrade = Util.randomInArray(world.cities.filter(c => c !== city));
@@ -66,6 +98,7 @@ function spawnCaravans(world: World): void {
   const caravan = new Caravan('Caravan !!', 1, 1, 1, 10, Util.copyPosition(city.position), city.nation,
     city.roads.find(r => r.to === cityToTrade), resourceToTrade, undefined, 500);
   city.caravans.push(caravan);
+  world.caravans.set(caravan.id, caravan);
   world.refreshLayer += 'K';
 }
 

@@ -8,8 +8,9 @@ export class World {
     public map: Tile[][];
     public nations: Nation[];
     public neighbours = new Map<City, City[]>();
-    public day = 6;
+    public day = 0;
     public refreshLayer = '';
+    public caravans = new Map<number, Caravan>();
 
     constructor() {}
 }
@@ -205,6 +206,8 @@ export class Industry {
 export class Caravan {
     static nextId = 0;
     public id: number;
+    public progress = 0;
+    public speed = 1;
 
     constructor(
         public name: string,

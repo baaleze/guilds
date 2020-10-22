@@ -1,6 +1,9 @@
 import { Tile, TileType, Position } from './model/models';
 
 export class Util {
+  static samePosition(p1: Position, p2: Position): boolean {
+    return p1.x === p2.x && p1.y === p2.y;
+  }
   static randomInArray<T>(arr: T[]): T {
     return arr[Math.floor(Math.random() * (arr.length))];
   }

@@ -4,7 +4,7 @@ import { DrawService } from './draw/draw.service';
 import { Util } from './util';
 import { Observable } from 'rxjs';
 
-const WORLD_SIZE = 256;
+const WORLD_SIZE = 128;
 const SEA_LEVEL = 90;
 
 @Component({
@@ -48,26 +48,47 @@ export class AppComponent implements AfterViewInit {
       this.progress = {
         status: message.msg,
         num: message.progress
-      }
+      };
     } else {
       // world has been generated
       this.progress = undefined;
       this.world = message.world;
       this.draw.drawMap(this.world);
-      this.tick().subscribe();
+      // init cities
+      this.tasks.onmessage = ({ data: m }) => {
+        if (m.type === 'initEnd') {
+          this.world = m.world;
+          this.tasks.onmessage = undefined;
+          // begin looping
+          this.update();
+        }
+      };
+      this.tasks.postMessage({task: 'init', world: this.world});
     }
   }
 
-  tick(): Observable<void> {
+  update(): void {
+    // tick
+    this.tick().subscribe(world => {
+      // update layer contents (new feature has appeared)
+      if (world.refreshLayer !== '') {
+        this.draw.rebuildLayers(world.refreshLayer, world);
+        world.refreshLayer = '';
+      }
+      // update map display
+      this.draw.updateLayers(world);
+
+      // loop
+      setTimeout(() => requestAnimationFrame(() => this.update()), 1000);
+    });
+  }
+
+  tick(): Observable<World> {
     return new Observable(obs => {
       this.tasks.onmessage = ({ data: message }) => {
         if (message.type === 'tickEnd') {
           this.world = message.world;
-          if (this.world.refreshLayer !== '') {
-            this.draw.refreshLayers(this.world.refreshLayer, this.world);
-            this.world.refreshLayer = '';
-          }
-          obs.next();
+          obs.next(message.world);
           obs.complete();
           this.tasks.onmessage = undefined;
         }
@@ -75,8 +96,6 @@ export class AppComponent implements AfterViewInit {
       this.tasks.postMessage({task: 'tick', world: this.world});
     });
   }
-
-  
 
   onPick(p: Position): void {
     if (this.world) {

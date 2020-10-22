@@ -1,4 +1,5 @@
-<button id="gen-button" (click)="generateWorld()">GENERATE</button>
+<button *ngIf="!world" id="gen-button" (click)="generateWorld()">GENERATE</button>
+<span *ngIf="world" id="day">Day: {{world.day / 10}}</span>
 <div id = "map">
 </div>
 <div *ngIf="world && world.cities" id="info-panel" class="container">
