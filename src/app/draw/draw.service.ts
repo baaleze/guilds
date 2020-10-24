@@ -70,8 +70,8 @@ export class DrawService {
   container: HTMLElement;
   worldSize: number;
   map: OlMap;
-  cityLayer: Layer;
-  caravanLayer: Layer;
+  cityLayer: VectorLayer;
+  caravanLayer: VectorLayer;
 
   // resources
   tileset: HTMLImageElement;
@@ -118,6 +118,8 @@ export class DrawService {
 
     // cities
     this.createCityLayer(world);
+
+    this.createCaravanLayer();
   }
 
   updateLayers(world: World): void {
@@ -134,40 +136,16 @@ export class DrawService {
     }
   }
 
-  rebuildLayers(refreshLayer: string, world: World): void {
-    if (refreshLayer.indexOf('K') !== -1) {
-      this.rebuildCaravanLayer(world);
-    }
+  addCaravan(caravan: Caravan): void {
+    const f = new Feature(new Point(this.toOlPosition(caravan.position)));
+    f.setId(caravan.id);
+    this.caravanLayer.getSource().addFeature(f);
   }
 
-  rebuildCaravanLayer(world: World): void {
-    // get list of caravans
-    const caravans: Feature[] = [];
-    world.caravans.forEach((c, id) => {
-      const f = new Feature(new Point(this.toOlPosition(c.position)));
-      f.setId(id);
-      caravans.push(f);
-    });
-    console.log(`Adding ${caravans.length} caravans`);
-    // recreate caravan layer
-    if (!this.caravanLayer) {
-      this.caravanLayer = new VectorLayer({
-        source: new VectorSource({
-          features: caravans
-        }),
-        style: new Style({
-          image: new Icon({
-            src: '/assets/icons/camel.png',
-            scale: 0.03125
-          })
-        })
-      });
-      this.map.addLayer(this.caravanLayer);
-    } else {
-      this.caravanLayer.setSource(new VectorSource({
-        features: caravans
-      }));
-    }
+  removeCaravan(caravan: Caravan): void {
+    this.caravanLayer.getSource().removeFeature(
+      this.caravanLayer.getSource().getFeatureById(caravan.id)
+    );
   }
 
   loadResources(): void {
@@ -221,9 +199,22 @@ export class DrawService {
     }));
   }
 
+  createCaravanLayer(): void {
+    this.caravanLayer = new VectorLayer({
+      source: new VectorSource<Point>(),
+      style: new Style({
+        image: new Icon({
+          src: '/assets/icons/camel.png',
+          scale: 0.03125
+        })
+      })
+    });
+    this.map.addLayer(this.caravanLayer);
+  }
+
   createCityLayer(world: World): void {
     this.cityLayer = new VectorLayer({
-      source: new VectorSource({
+      source: new VectorSource<Point>({
         features: world.cities.map(city => {
           const f = new Feature(
             new Point(this.toOlPosition(city.position)));

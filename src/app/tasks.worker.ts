@@ -1,48 +1,37 @@
 /// <reference lib="webworker" />
 
-import { World, Resource, City, allResources, Industry, TileType, Message, Caravan, Position } from './model/models';
+import { TICK_TIME } from './model/const';
+import { World, Resource, City, allResources, Industry, TileType, Message, Caravan, Position, Task } from './model/models';
 import { Util } from './util';
 
-const TICK_TIME = 1;
 
 addEventListener('message', (data) => {
-  console.log('GOT MESSAGE', data);
   postMessage(handleMessage(data.data));
 });
 
 function handleMessage(data): Message {
-  switch (data.task) {
-    case 'tick':
-      return tick(data.world);
+  switch (data.task as Task) {
+    case 'updateCity':
+      // update cities every week
+      if (data.world.day === 0) {
+        updateCities(data.world);
+      }
+      return {type: 'end', cities: data.world.cities, progress: 100, id: data.id};
+    case 'spawnCaravans':
+      const caravan = spawnCaravans(data.world);
+      return {type: 'end', caravan, progress: 100, id: data.id};
+    case 'moveCaravans':
+      const caravans = moveCaravans(data.world);
+      return {type: 'end', caravans, progress: 100, id: data.id};
     case 'init':
-      return init(data.world);
+      updateCities(data.world);
+      return {type: 'end', world: data.world, progress: 100, id: data.id};
     default:
-      return {type: 'error', msg: `Unknown task ${data.task}`, progress: 100};
+      return {type: 'error', msg: `Unknown task ${data.task}`, progress: 100, id: data.id};
   }
 }
 
-function init(world: World): Message {
-  updateCities(world);
-  return {type: 'initEnd', world, progress: 100};
-}
-
-function tick(world: World): Message {
-  world.day = (world.day + TICK_TIME) % 70;
-  // update cities every week
-  if (world.day === 0) {
-    updateCities(world);
-  }
-
-  // spawn a thing ?
-  spawnCaravans(world);
-
-  // move every group on the map
-  moveEverything(world);
-
-  return {type: 'tickEnd', world, progress: 100};
-}
-
-function moveEverything(world: World): void {
+function moveCaravans(world: World): Map<number, Caravan> {
   // move caravans
   world.caravans.forEach(c => {
     // move along the road
@@ -62,9 +51,10 @@ function moveEverything(world: World): void {
       c.position.y = after.y * between + before.y * (1 - between);
     }
   });
+  return world.caravans;
 }
 
-function spawnCaravans(world: World): void {
+function spawnCaravans(world: World): Caravan {
   // get all cities with enough access to spawn caravans and pick one
   const city = Util.randomInArray(world.cities.filter(c => c.caravans.length < 2));
   if (!city) {return;}
@@ -95,11 +85,8 @@ function spawnCaravans(world: World): void {
   }
 
   // LETS GOOOOOOO
-  const caravan = new Caravan('Caravan !!', 1, 1, 1, 10, Util.copyPosition(city.position), city.nation,
+  return new Caravan('Caravan !!', 1, 1, 1, 10, Util.copyPosition(city.position), city.nation,
     city.roads.find(r => r.to === cityToTrade), resourceToTrade, undefined, 500);
-  city.caravans.push(caravan);
-  world.caravans.set(caravan.id, caravan);
-  world.refreshLayer += 'K';
 }
 
 function updateCities(world: World): void {

@@ -65,7 +65,7 @@ addEventListener('message', ({ data }) => {
 });
 
 function submitProgress(msg: string, world: World, progress: number): void {
-  const message: Message = { type : 'progress', msg, world, progress };
+  const message: Message = { type : 'progress', msg, world, progress, id: 0 };
   postMessage(message);
 }
 

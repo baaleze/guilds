@@ -3,9 +3,6 @@
         <span *ngIf="city.port">Has a port [{{city.port.x}},{{city.port.y}}]</span>
         Population {{city.population}} [{{getMag()}}] (growth = {{city.growth * 10}}%) | Access {{city.access}} | Stability {{city.stability}} |
     </h3>
-    <div>
-        Roads to <span *ngFor="let r of city.roads">{{r.to.name}}//</span>
-    </div>
     <div *ngIf="city.industries">
         <div >Industries:<br>
             <table>

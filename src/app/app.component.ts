@@ -1,11 +1,9 @@
 import { Component, AfterViewInit } from '@angular/core';
-import { World, TileType, Position,Resource, allResources, City, Message } from './model/models';
+import { World, TileType, Position,Resource, allResources, City, Message, Task } from './model/models';
 import { DrawService } from './draw/draw.service';
 import { Util } from './util';
-import { Observable } from 'rxjs';
+import { SEA_LEVEL, TICK_TIME, WORLD_SIZE } from './model/const';
 
-const WORLD_SIZE = 128;
-const SEA_LEVEL = 90;
 
 @Component({
   selector: 'app-root',
@@ -14,6 +12,7 @@ const SEA_LEVEL = 90;
 })
 export class AppComponent implements AfterViewInit {
 
+  static taskId = 0;
   world: World;
   worldgen: Worker;
   tasks: Worker;
@@ -21,19 +20,21 @@ export class AppComponent implements AfterViewInit {
   progress: { status: string, num: number};
   resourcesString = allResources.map(r => Resource[r]);
 
+  taskCallBacks = new Map<number, (msg: Message) => void>();
+
   constructor(public draw: DrawService) {}
 
   ngAfterViewInit(): void {
     this.draw.init(document.getElementById('map'), WORLD_SIZE, SEA_LEVEL);
     // pick events
     this.draw.onClick.subscribe(p => this.onPick(p));
-  }
-
-  public generateWorld(): void {
     this.worldgen = new Worker('./worldgen.worker', { type: 'module' });
     this.tasks = new Worker('./tasks.worker', { type: 'module' });
     this.worldgen.onmessage = ({ data }) => this.handleGenMessage(data);
+    this.tasks.onmessage = ({data}) => this.onTaskMessage(data);
+  }
 
+  public generateWorld(): void {
     this.worldgen.postMessage({
       seaLevel: SEA_LEVEL,
       mountainLevel: 200,
@@ -42,6 +43,23 @@ export class AppComponent implements AfterViewInit {
     });
   }
 
+  runTask(task: Task, callback: (msg: Message) => void): void {
+    const id = AppComponent.taskId++;
+    this.taskCallBacks.set(id, callback);
+    this.tasks.postMessage({task, world: this.world, id});
+  }
+
+  onTaskMessage(message: Message): void {
+    if (message.type === 'end') {
+      // call callback
+      const callback = this.taskCallBacks.get(message.id);
+      if (callback) {
+        console.log('GOT END MESSAGE', message);
+        this.taskCallBacks.set(message.id, undefined);
+        callback(message);
+      }
+    }
+  }
 
   private handleGenMessage(message: Message): void {
     if (message.type === 'progress') {
@@ -54,46 +72,45 @@ export class AppComponent implements AfterViewInit {
       this.progress = undefined;
       this.world = message.world;
       this.draw.drawMap(this.world);
-      // init cities
-      this.tasks.onmessage = ({ data: m }) => {
-        if (m.type === 'initEnd') {
-          this.world = m.world;
-          this.tasks.onmessage = undefined;
-          // begin looping
-          this.update();
-        }
-      };
-      this.tasks.postMessage({task: 'init', world: this.world});
+      // init cities and start looping
+      this.runTask('init', msg => {
+        this.world = msg.world;
+        this.update();
+      });
     }
   }
 
   update(): void {
+    this.world.day = (this.world.day + TICK_TIME) % 70;
     // tick
-    this.tick().subscribe(world => {
-      // update layer contents (new feature has appeared)
-      if (world.refreshLayer !== '') {
-        this.draw.rebuildLayers(world.refreshLayer, world);
-        world.refreshLayer = '';
+    this.runTask('updateCity', msg => {
+      // update cities
+      if (this.world.day === 0) {
+        this.world.cities = msg.cities;
       }
-      // update map display
-      this.draw.updateLayers(world);
 
-      // loop
-      setTimeout(() => requestAnimationFrame(() => this.update()), 1000);
-    });
-  }
+      this.runTask('spawnCaravans', msg => {
+        // add caravan
+        const caravan = msg.caravan;
+        this.world.caravans.set(caravan.id, caravan);
+        caravan.route.from.caravans.push(caravan);
+        this.draw.addCaravan(caravan);
 
-  tick(): Observable<World> {
-    return new Observable(obs => {
-      this.tasks.onmessage = ({ data: message }) => {
-        if (message.type === 'tickEnd') {
-          this.world = message.world;
-          obs.next(message.world);
-          obs.complete();
-          this.tasks.onmessage = undefined;
-        }
-      };
-      this.tasks.postMessage({task: 'tick', world: this.world});
+        this.runTask('moveCaravans', msg => {
+          // DELETE caravans if needed
+          this.world.caravans.forEach((c, id) => {
+            if (!msg.caravans.has(id)) {
+              this.draw.removeCaravan(c);
+            }
+          });
+          this.world.caravans = msg.caravans;
+          // update map display
+          this.draw.updateLayers(this.world);
+
+          // loop
+          requestAnimationFrame(() => this.update());
+        });
+      });
     });
   }
 

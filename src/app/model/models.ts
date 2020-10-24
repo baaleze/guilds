@@ -9,7 +9,6 @@ export class World {
     public nations: Nation[];
     public neighbours = new Map<City, City[]>();
     public day = 0;
-    public refreshLayer = '';
     public caravans = new Map<number, Caravan>();
 
     constructor() {}
@@ -264,8 +263,14 @@ export class Position {
 export interface Message {
     msg?: string;
     world?: World;
+    cities?: City[];
+    caravan?: Caravan;
+    caravans?: Map<number, Caravan>;
     progress: number;
     type: string;
+    id: number;
 }
 
 export type Target = People | City | Faction;
+
+export type Task = 'updateCity' | 'spawnCaravans' | 'moveCaravans' | 'init';
